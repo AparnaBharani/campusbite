@@ -12,6 +12,7 @@
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -67,6 +68,65 @@
     .toggle-checkbox:checked + .toggle-label {
       background-color: #1BA672;
     }
+    .campus-graph-edge {
+      stroke: #CBD5E1;
+      stroke-width: 2;
+      opacity: 0.75;
+      transition: opacity 160ms ease, stroke 160ms ease, stroke-width 160ms ease;
+    }
+    .campus-graph-edge.is-dimmed,
+    .campus-graph-node.is-dimmed {
+      opacity: 0.16;
+    }
+    .campus-graph-edge.order-route {
+      stroke: #FF5200;
+      stroke-width: 3;
+      stroke-dasharray: 7 5;
+      opacity: 0.9;
+    }
+    .campus-graph-edge.is-selected {
+      stroke: #FF5200;
+      stroke-width: 4;
+      opacity: 1;
+    }
+    .campus-graph-node {
+      cursor: pointer;
+      transition: opacity 160ms ease;
+    }
+    .campus-graph-node circle {
+      stroke: #FFFFFF;
+      stroke-width: 4;
+      transition: stroke 160ms ease, stroke-width 160ms ease, filter 160ms ease;
+    }
+    .campus-graph-node:hover circle,
+    .campus-graph-node:focus circle,
+    .campus-graph-node.is-selected circle {
+      stroke: #FF5200;
+      stroke-width: 5;
+      filter: drop-shadow(0 3px 6px rgba(255, 82, 0, 0.24));
+    }
+    .campus-graph-node:focus {
+      outline: none;
+    }
+    .campus-graph-label {
+      fill: #3D4152;
+      font: 700 12px 'Plus Jakarta Sans', sans-serif;
+      text-anchor: middle;
+      pointer-events: none;
+    }
+    .campus-graph-symbol {
+      fill: #FFFFFF;
+      font: 800 14px 'Plus Jakarta Sans', sans-serif;
+      text-anchor: middle;
+      dominant-baseline: central;
+      pointer-events: none;
+    }
+    .campus-graph-order .campus-graph-symbol {
+      font-size: 10px;
+    }
+    .delivery-scene { position:relative; height:300px; overflow:hidden; border-radius:16px; background:linear-gradient(180deg,#b8d9f1 0%,#e6f2e8 58%,#cad9b5 100%); }
+    .delivery-scene canvas { display:block; width:100%; height:100%; }
+    @media (max-width:640px) { .delivery-scene { height:230px; } }
   </style>
 </head>
 <body class="bg-white text-swiggy-ink min-h-screen flex flex-col selection:bg-swiggy-orange selection:text-white">
@@ -150,6 +210,17 @@
           </svg>
           <span class="hidden sm:inline">Track Order</span>
           <span id="navActiveOrderBadge" class="hidden text-[11px] font-extrabold bg-swiggy-orange text-white min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">0</span>
+        </button>
+
+        <!-- Interactive Campus Network Graph -->
+        <button onclick="openCampusGraph()" aria-label="Open campus network graph" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-sm font-bold text-swiggy-charcoal hover:text-swiggy-orange hover:bg-swiggy-orangeTint transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="5" r="2.5" />
+            <circle cx="5" cy="18" r="2.5" />
+            <circle cx="19" cy="18" r="2.5" />
+            <path stroke-linecap="round" d="M10.8 7.2 6.2 15.8M13.2 7.2l4.6 8.6M7.5 18h9" />
+          </svg>
+          <span class="hidden sm:inline">Campus Graph</span>
         </button>
 
         <!-- Cart Button -->
@@ -747,6 +818,59 @@
         <button onclick="closePitchModal()" class="bg-swiggy-ink text-white text-xs font-bold px-5 py-2.5 rounded-xl hover:bg-swiggy-charcoal transition-colors">
           Back to Interactive Demo
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       INTERACTIVE CAMPUS NETWORK GRAPH
+  ========================================================== -->
+  <div id="campusGraphModal" role="dialog" aria-modal="true" aria-labelledby="campusGraphTitle" onclick="if (event.target === this) closeCampusGraph()" class="fixed inset-0 z-[55] hidden items-center justify-center bg-black/55 backdrop-blur-[1px] p-2 sm:p-4">
+    <div class="bg-white rounded-2xl w-full max-w-7xl max-h-[94vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+        <div>
+          <div class="text-[11px] font-extrabold uppercase tracking-wider text-swiggy-orange">Amrita Ettimadai • Live system map</div>
+          <h2 id="campusGraphTitle" class="text-lg sm:text-xl font-extrabold text-swiggy-ink">Campus Connect Graph</h2>
+        </div>
+        <button onclick="closeCampusGraph()" aria-label="Close campus graph" class="w-9 h-9 shrink-0 rounded-full hover:bg-swiggy-surface flex items-center justify-center text-swiggy-charcoal">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-3 sm:p-5 overflow-y-auto">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2" role="group" aria-label="Graph view">
+            <button id="campusGraphNetworkTab" onclick="setCampusGraphMode('network')" aria-pressed="true" class="campus-graph-tab px-3.5 py-2 rounded-xl text-xs font-extrabold bg-swiggy-ink text-white">Campus network</button>
+            <button id="campusGraphOrdersTab" onclick="setCampusGraphMode('orders')" aria-pressed="false" class="campus-graph-tab px-3.5 py-2 rounded-xl text-xs font-extrabold bg-swiggy-surface text-swiggy-charcoal hover:bg-orange-50">Active orders</button>
+          </div>
+          <p id="campusGraphSummary" class="text-xs font-semibold text-swiggy-slate"></p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_260px] gap-4">
+          <div class="rounded-2xl border border-gray-100 bg-[#FAFAFC] overflow-x-auto">
+            <svg id="campusGraphSvg" class="w-full min-w-[760px] h-[440px] sm:h-[560px]" viewBox="0 0 960 650" role="img" aria-label="Interactive graph of campus canteens, menu categories, hostel gates, riders, and orders"></svg>
+          </div>
+          <aside class="rounded-2xl border border-gray-100 bg-white p-4 min-h-40">
+            <div class="text-[10px] font-extrabold uppercase tracking-wider text-swiggy-orange">Selected connection</div>
+            <h3 id="campusGraphDetailTitle" class="mt-2 text-base font-extrabold text-swiggy-ink">Campus Connect</h3>
+            <p id="campusGraphDetailDescription" class="mt-1 text-xs leading-relaxed text-swiggy-slate">Select any node to explore its role in the campus food network.</p>
+            <ul id="campusGraphDetailList" class="mt-3 space-y-2 text-xs font-semibold text-swiggy-charcoal"></ul>
+            <div class="mt-5 border-t border-gray-100 pt-3">
+              <div class="text-[10px] font-extrabold uppercase tracking-wider text-swiggy-slate mb-2">Legend</div>
+              <div class="grid grid-cols-2 gap-x-2 gap-y-2 text-[10px] font-bold text-swiggy-charcoal">
+                <span><i class="inline-block w-2.5 h-2.5 rounded-full bg-swiggy-orange mr-1.5"></i>Campus</span>
+                <span><i class="inline-block w-2.5 h-2.5 rounded-full bg-sky-600 mr-1.5"></i>Canteen</span>
+                <span><i class="inline-block w-2.5 h-2.5 rounded-full bg-violet-500 mr-1.5"></i>Category</span>
+                <span><i class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-600 mr-1.5"></i>Gate</span>
+                <span><i class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></i>Rider</span>
+                <span><i class="inline-block w-4 border-t-2 border-dashed border-swiggy-orange mr-1.5 align-middle"></i>Order route</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+        <p id="campusGraphEmptyOrders" class="hidden mt-3 rounded-xl bg-swiggy-orangeTint px-4 py-3 text-xs font-semibold text-swiggy-charcoal">There are no active orders yet. Place a demo order from the Student view to see a live route here.</p>
       </div>
     </div>
   </div>
@@ -1512,6 +1636,22 @@
               <span class="font-bold text-swiggy-ink">${order.rider ? `🛵 ${order.rider}` : 'Rider: Awaiting assignment'}</span>
             </div>
 
+            ${!isCancelled ? `
+              <section class="space-y-2" aria-label="3D campus delivery route">
+                <div class="flex items-center justify-between gap-2">
+                  <div>
+                    <div class="text-xs font-extrabold text-swiggy-ink">Your campus delivery</div>
+                    <div class="text-[10px] text-swiggy-slate">Illustrative 3D campus route · ${order.canteen} Canteen → ${order.gate}</div>
+                  </div>
+                  <span class="text-[10px] font-extrabold text-swiggy-orange bg-swiggy-orangeTint rounded-full px-2.5 py-1">SCOOTY VIEW</span>
+                </div>
+                <div class="delivery-scene" id="deliveryScene-${order.id}" data-canteen="${order.canteen}" data-gate="${order.gate}">
+                  <div class="absolute left-3 top-3 z-10 rounded-lg bg-white/90 px-2.5 py-1.5 text-[10px] font-bold text-swiggy-charcoal shadow-sm">3D route preview · not to scale</div>
+                  <div class="absolute right-3 bottom-3 z-10 rounded-lg bg-white/90 px-2.5 py-1.5 text-[10px] font-extrabold text-swiggy-ink shadow-sm">🏁 ${order.gate}</div>
+                </div>
+              </section>
+            ` : ''}
+
             <!-- Progress Stepper -->
             ${isCancelled ? `
               <div class="text-xs font-bold text-swiggy-nonveg bg-red-50 rounded-xl p-3">
@@ -1536,6 +1676,114 @@
           </div>
         `;
       }).join('');
+      body.querySelectorAll('.delivery-scene').forEach((container) => renderDeliveryScene(container));
+    }
+
+    // A lightweight, campus-inspired 3D diorama. Publicly available material
+    // confirms the Ettimadai campus location, but not a surveyed building map;
+    // therefore buildings and internal paths are illustrative rather than GPS routes.
+    function renderDeliveryScene(container) {
+      if (!window.THREE || !container || container.dataset.ready) return;
+      container.dataset.ready = 'true';
+      const THREE = window.THREE;
+      const width = Math.max(280, container.clientWidth);
+      const height = Math.max(180, container.clientHeight);
+      const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
+      renderer.setSize(width, height);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      container.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0xd9e8d1, 24, 68);
+      const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
+      camera.position.set(12, 15, 20);
+      camera.lookAt(0, 0, 0);
+      scene.add(new THREE.HemisphereLight(0xe9f6ff, 0x73855e, 2.1));
+      const sun = new THREE.DirectionalLight(0xfff1d2, 2.5);
+      sun.position.set(-8, 16, 10); sun.castShadow = true; scene.add(sun);
+
+      const mat = (color, roughness=0.9) => new THREE.MeshStandardMaterial({ color, roughness });
+      const ground = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), mat(0xb5c99d));
+      ground.rotation.x = -Math.PI/2; ground.position.y = -0.16; ground.receiveShadow = true; scene.add(ground);
+      const roadMat = mat(0x59636a), curbMat = mat(0xe6dfce);
+      const road = new THREE.Mesh(new THREE.PlaneGeometry(4.3, 42), roadMat);
+      road.rotation.x = -Math.PI/2; road.position.set(0, -0.12, 0); road.receiveShadow = true; scene.add(road);
+      for (let z=-18; z<=18; z+=4) {
+        const dash = new THREE.Mesh(new THREE.BoxGeometry(0.12,0.025,1.5), mat(0xf7e6a7));
+        dash.position.set(0,-0.09,z); scene.add(dash);
+      }
+      // Side roads link the main campus lane to the canteen and hostel blocks.
+      [[-5,-8,10,2.6],[5,10,9,2.6],[-5,13,2.6,12],[5,-13,2.6,10]].forEach(([x,z,w,d])=>{
+        const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),roadMat); m.rotation.x=-Math.PI/2; m.position.set(x,-0.12,z); scene.add(m);
+      });
+      function building(x,z,w,d,h,color,label) {
+        const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color)); b.position.set(x,h/2,z); b.castShadow=true; b.receiveShadow=true; scene.add(b);
+        const roof=new THREE.Mesh(new THREE.BoxGeometry(w+0.18,0.18,d+0.18),mat(0xf1e8d7)); roof.position.set(x,h+0.05,z); roof.castShadow=true; scene.add(roof);
+        for(let wx=-w/2+0.55;wx<w/2;wx+=1.05) for(let wy=1.15;wy<h-0.2;wy+=1.15){
+          const win=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.38,0.035),mat(0x98c8d7,0.35)); win.position.set(x+wx,wy,z+d/2+0.025); scene.add(win);
+        }
+        const sign=new THREE.Mesh(new THREE.BoxGeometry(Math.min(w-0.5,4.2),0.35,0.08),mat(0xff5200)); sign.position.set(x,h*0.72,z+d/2+0.06); scene.add(sign);
+        return new THREE.Vector3(x,0.12,z);
+      }
+      const canteenPos=building(-7,-13,5.5,4,3.1,0xf8b47e,container.dataset.canteen+' Canteen');
+      building(-8,3,6,5,5.2,0xf2d69b,'Academic block');
+      building(8,-3,7,5,6.1,0xd9b9a0,'Campus block');
+      const gates={ 'Amritam Gate':[7,20], 'Vasishta Gate':[12,12], 'Ganga Gate':[-12,12], 'Yagnavalkya Gate':[-12,-2] };
+      const [gateX,gateZ]=gates[container.dataset.gate]||gates['Amritam Gate'];
+      building(gateX,gateZ-6,7,5,4.1,0xe4b7ab,'Hostel');
+      const gatePos=building(gateX,gateZ,5,3.5,2.6,0xd2c3a8,'Hostel gate');
+      // Stylized trees and shrubs around the paths.
+      for(let i=0;i<30;i++){
+        const x=((i*17)%31)-15, z=((i*23)%39)-19;
+        if(Math.abs(x)<3.2 || (x<-4&&z<-10) || (x>4&&z>17)) continue;
+        const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.09,.14,.8,6),mat(0x72533b)); trunk.position.set(x,.25,z); scene.add(trunk);
+        const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(.62+(i%3)*.12,1),mat(i%3===0?0x4f8155:0x648c59)); crown.position.set(x,.9,z); crown.castShadow=true; scene.add(crown);
+      }
+      // Curved, animated route from the selected canteen toward the hostel gate.
+      const side=container.dataset.canteen==='MBA'?-1:container.dataset.canteen==='MC'?1:0;
+      const start=new THREE.Vector3(canteenPos.x+side*1.3,0.12,canteenPos.z+2.5);
+      const end=new THREE.Vector3(gatePos.x,0.12,gatePos.z-2.8);
+      const curve=new THREE.CatmullRomCurve3([start,new THREE.Vector3(-4,0.12,-10),new THREE.Vector3(-2,0.12,-4),new THREE.Vector3(2,0.12,3),new THREE.Vector3(end.x*.65,0.12,10),end]);
+      const route=new THREE.Mesh(new THREE.TubeGeometry(curve,64,0.11,7,false),new THREE.MeshStandardMaterial({color:0xff5200,emissive:0x6e1f00,roughness:.45})); scene.add(route);
+      const scooter=new THREE.Group();
+      const orange=mat(0xff5200,.45), black=mat(0x20262b,.5), cream=mat(0xfff2d8,.6), skin=mat(0xc98662);
+      const wheelGeo=new THREE.TorusGeometry(.26,.075,8,18);
+      [-.42,.42].forEach(x=>{const w=new THREE.Mesh(wheelGeo,black);w.rotation.y=Math.PI/2;w.position.set(x,.27,.16);scooter.add(w);});
+      const body=new THREE.Mesh(new THREE.BoxGeometry(.9,.32,.38),orange);body.position.set(0,.55,.15);scooter.add(body);
+      const front=new THREE.Mesh(new THREE.BoxGeometry(.2,.58,.28),orange);front.position.set(.42,.68,-.02);scooter.add(front);
+      const riderBody=new THREE.Mesh(new THREE.CapsuleGeometry(.19,.48,4,8),mat(0x183b63));riderBody.position.set(-.02,1.02,-.12);riderBody.rotation.x=-.28;scooter.add(riderBody);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(.19,14,10),skin);head.position.set(.02,1.42,-.18);scooter.add(head);
+      const helmet=new THREE.Mesh(new THREE.SphereGeometry(.21,14,10,0,Math.PI*2,0,Math.PI/2),orange);helmet.position.set(.02,1.48,-.18);scooter.add(helmet);
+      const bag=new THREE.Mesh(new THREE.BoxGeometry(.38,.38,.32),mat(0xff5200));bag.position.set(-.29,1.12,-.1);scooter.add(bag);
+      scooter.traverse(o=>{if(o.isMesh)o.castShadow=true;}); scene.add(scooter);
+      const labels=[];
+      function tag(text,pos,color){
+        const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const ctx=canvas.getContext('2d');
+        ctx.fillStyle='rgba(255,255,255,.92)';ctx.beginPath();ctx.roundRect(6,8,500,80,20);ctx.fill();
+        ctx.fillStyle=color;ctx.font='bold 30px system-ui';ctx.fillText(text,22,59);
+        const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
+        const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));sprite.scale.set(5,0.94,1);sprite.position.copy(pos);scene.add(sprite);labels.push(sprite);
+      }
+      tag(container.dataset.canteen+' Canteen',new THREE.Vector3(canteenPos.x,4.2,canteenPos.z), '#253548');
+      tag(container.dataset.gate,new THREE.Vector3(gatePos.x,3.6,gatePos.z), '#253548');
+      const started=performance.now(); let raf=0;
+      function animate(now){
+        if(!container.isConnected){renderer.dispose();return;}
+        const t=Math.min(1,(now-started)/18000);
+        const p=curve.getPointAt(t); scooter.position.copy(p);
+        const tangent=curve.getTangentAt(t); scooter.rotation.y=Math.atan2(tangent.x,tangent.z);
+        scooter.position.y+=Math.abs(Math.sin(now*.012))*.025;
+        camera.lookAt(0,1,1);
+        renderer.render(scene,camera);raf=requestAnimationFrame(animate);
+      }
+      animate(started);
+      const resizeObserver=new ResizeObserver(()=>{
+        if(!container.isConnected){cancelAnimationFrame(raf);resizeObserver.disconnect();renderer.dispose();return;}
+        const w=Math.max(280,container.clientWidth),h=Math.max(180,container.clientHeight);renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();
+      }); resizeObserver.observe(container);
     }
 
     /* -----------------------------------------------------------
@@ -1920,12 +2168,333 @@
     }
 
     /* -----------------------------------------------------------
-       13. INITIALIZE APP ON LOAD
+       13. INTERACTIVE CAMPUS NETWORK GRAPH
+    ------------------------------------------------------------ */
+    let campusGraphMode = 'network';
+    let campusGraphSelectedId = 'campus';
+
+    function openCampusGraph() {
+      const modal = document.getElementById('campusGraphModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.classList.add('overflow-hidden');
+      renderCampusGraph();
+    }
+
+    function closeCampusGraph() {
+      const modal = document.getElementById('campusGraphModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    function setCampusGraphMode(mode) {
+      campusGraphMode = mode;
+      campusGraphSelectedId = 'campus';
+      document.getElementById('campusGraphNetworkTab').setAttribute('aria-pressed', String(mode === 'network'));
+      document.getElementById('campusGraphOrdersTab').setAttribute('aria-pressed', String(mode === 'orders'));
+      document.getElementById('campusGraphNetworkTab').className = mode === 'network'
+        ? 'campus-graph-tab px-3.5 py-2 rounded-xl text-xs font-extrabold bg-swiggy-ink text-white'
+        : 'campus-graph-tab px-3.5 py-2 rounded-xl text-xs font-extrabold bg-swiggy-surface text-swiggy-charcoal hover:bg-orange-50';
+      document.getElementById('campusGraphOrdersTab').className = mode === 'orders'
+        ? 'campus-graph-tab px-3.5 py-2 rounded-xl text-xs font-extrabold bg-swiggy-ink text-white'
+        : 'campus-graph-tab px-3.5 py-2 rounded-xl text-xs font-extrabold bg-swiggy-surface text-swiggy-charcoal hover:bg-orange-50';
+      renderCampusGraph();
+    }
+
+    function renderCampusGraph() {
+      const svg = document.getElementById('campusGraphSvg');
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+      const colors = {
+        campus: '#FF5200',
+        canteen: '#0284C7',
+        category: '#8B5CF6',
+        gate: '#059669',
+        rider: '#F59E0B',
+        order: '#F97316',
+      };
+      const nodes = [
+        { id: 'campus', type: 'campus', label: 'Campus Connect', short: 'SC', x: 480, y: 320, radius: 45 },
+        ...CANTEENS.map((canteen, index) => ({
+          id: `canteen-${canteen.id}`, type: 'canteen', label: canteen.id, short: 'C',
+          x: 190, y: 180 + index * 140, radius: 34, data: canteen,
+        })),
+      ];
+      const categoryPositions = [
+        { x: 350, y: 95 }, { x: 460, y: 75 }, { x: 570, y: 75 }, { x: 680, y: 95 },
+      ];
+      const graphCategories = [...new Set(menuItems.map((item) => item.cat))];
+      graphCategories.forEach((category, index) => {
+        const position = categoryPositions[index] || { x: 350 + (index % 4) * 110, y: 115 + Math.floor(index / 4) * 85 };
+        nodes.push({
+          id: `category-${category}`, type: 'category', label: category, short: 'F',
+          x: position.x, y: position.y, radius: 30, data: category,
+        });
+      });
+
+      HOSTEL_GATES.forEach((gate, index) => {
+        nodes.push({
+          id: `gate-${gate}`, type: 'gate', label: gate.replace(' Gate', ''), short: 'G',
+          x: 790, y: 185 + index * 115, radius: 31, data: gate,
+        });
+      });
+      riders.forEach((rider, index) => {
+        nodes.push({
+          id: `rider-${rider.id}`, type: 'rider', label: rider.id, short: String(index + 1),
+          x: 330 + index * 75, y: 570, radius: 27, data: rider,
+        });
+      });
+
+      const nodeById = new Map(nodes.map((node) => [node.id, node]));
+      const edges = [];
+      CANTEENS.forEach((canteen) => {
+        edges.push({ from: 'campus', to: `canteen-${canteen.id}`, kind: 'core' });
+        graphCategories.forEach((category) => {
+          if (menuItems.some((item) => item.canteen === canteen.id && item.cat === category)) {
+            edges.push({ from: `canteen-${canteen.id}`, to: `category-${category}`, kind: 'food' });
+          }
+        });
+      });
+      HOSTEL_GATES.forEach((gate) => edges.push({ from: 'campus', to: `gate-${gate}`, kind: 'core' }));
+      riders.forEach((rider) => edges.push({ from: 'campus', to: `rider-${rider.id}`, kind: 'core' }));
+
+      const activeOrders = state.orders.filter((order) => !['DELIVERED', 'CANCELLED'].includes(order.status));
+      if (campusGraphMode === 'orders') {
+        activeOrders.forEach((order) => {
+          const canteenId = `canteen-${order.canteen}`;
+          const gateId = `gate-${order.gate}`;
+          const riderId = order.rider ? `rider-${order.rider}` : null;
+          if (!nodeById.has(canteenId) || !nodeById.has(gateId)) return;
+          if (riderId && nodeById.has(riderId)) {
+            edges.push({ from: canteenId, to: riderId, kind: 'order', order });
+            edges.push({ from: riderId, to: gateId, kind: 'order', order });
+          } else {
+            edges.push({ from: canteenId, to: gateId, kind: 'order', order });
+          }
+        });
+      }
+
+      const svgElement = (name, attributes) => {
+        const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+        Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+        return element;
+      };
+
+      edges.forEach((edge) => {
+        const from = nodeById.get(edge.from);
+        const to = nodeById.get(edge.to);
+        const line = svgElement('line', {
+          x1: from.x, y1: from.y, x2: to.x, y2: to.y,
+          class: `campus-graph-edge${edge.kind === 'order' ? ' order-route' : ''}`,
+          'data-from': edge.from,
+          'data-to': edge.to,
+        });
+        if (edge.order) {
+          line.setAttribute('data-order-id', edge.order.id);
+          line.setAttribute('role', 'button');
+          line.setAttribute('tabindex', '0');
+          line.setAttribute('aria-label', `Order ${edge.order.id} route: ${edge.order.status}`);
+          line.addEventListener('click', () => selectCampusGraphNode(`order-${edge.order.id}`));
+          line.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              selectCampusGraphNode(`order-${edge.order.id}`);
+            }
+          });
+        }
+        svg.appendChild(line);
+      });
+
+      const ordersById = new Map(activeOrders.map((order) => [`order-${order.id}`, order]));
+      nodes.forEach((node) => {
+        const group = svgElement('g', {
+          class: 'campus-graph-node',
+          'data-node-id': node.id,
+          tabindex: '0',
+          role: 'button',
+          'aria-label': `${node.type}: ${node.label}`,
+        });
+        const title = svgElement('title', {});
+        title.textContent = `${node.type}: ${node.label}`;
+        group.appendChild(title);
+        group.appendChild(svgElement('circle', {
+          cx: node.x, cy: node.y, r: node.radius, fill: colors[node.type],
+        }));
+        const symbol = svgElement('text', { x: node.x, y: node.y, class: 'campus-graph-symbol' });
+        symbol.textContent = node.short;
+        group.appendChild(symbol);
+        const label = svgElement('text', { x: node.x, y: node.y + node.radius + 19, class: 'campus-graph-label' });
+        label.textContent = node.label;
+        group.appendChild(label);
+        group.addEventListener('click', () => selectCampusGraphNode(node.id));
+        group.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            selectCampusGraphNode(node.id);
+          }
+        });
+        svg.appendChild(group);
+      });
+
+      if (campusGraphMode === 'orders') activeOrders.forEach((order, index) => {
+        const from = nodeById.get(`canteen-${order.canteen}`);
+        const to = order.rider
+          ? nodeById.get(`rider-${order.rider}`) || nodeById.get(`gate-${order.gate}`)
+          : nodeById.get(`gate-${order.gate}`);
+        if (!from || !to) return;
+        const x = (from.x + to.x) / 2;
+        const y = (from.y + to.y) / 2 + (index % 2 === 0 ? -18 : 18);
+        const orderNode = svgElement('g', {
+          class: 'campus-graph-node campus-graph-order',
+          'data-node-id': `order-${order.id}`,
+          tabindex: '0',
+          role: 'button',
+          'aria-label': `Order ${order.id}: ${order.status}`,
+        });
+        const title = svgElement('title', {});
+        title.textContent = `Order ${order.id}: ${order.status}`;
+        orderNode.appendChild(title);
+        orderNode.appendChild(svgElement('circle', { cx: x, cy: y, r: 22, fill: colors.order }));
+        const label = svgElement('text', { x, y, class: 'campus-graph-symbol' });
+        label.textContent = `#${order.id}`;
+        orderNode.appendChild(label);
+        orderNode.addEventListener('click', () => selectCampusGraphNode(`order-${order.id}`));
+        orderNode.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            selectCampusGraphNode(`order-${order.id}`);
+          }
+        });
+        svg.appendChild(orderNode);
+      });
+
+      document.getElementById('campusGraphSummary').textContent =
+        `${CANTEENS.length} canteens · ${graphCategories.length} food categories · ${HOSTEL_GATES.length} hostel gates · ${riders.length} riders · ${activeOrders.length} active order${activeOrders.length === 1 ? '' : 's'}`;
+      document.getElementById('campusGraphEmptyOrders').classList.toggle('hidden', campusGraphMode !== 'orders' || activeOrders.length > 0);
+
+      updateCampusGraphSelection(nodeById, ordersById);
+    }
+
+    function selectCampusGraphNode(nodeId) {
+      campusGraphSelectedId = nodeId;
+      updateCampusGraphSelection();
+    }
+
+    function updateCampusGraphSelection(nodeById, ordersById) {
+      const svg = document.getElementById('campusGraphSvg');
+      const nodes = nodeById || new Map();
+      const orders = ordersById || new Map();
+      if (!nodeById) {
+        svg.querySelectorAll('.campus-graph-node').forEach((group) => {
+          const id = group.getAttribute('data-node-id');
+          if (id.startsWith('order-')) return;
+          const type = id.split('-')[0];
+          const node = { id, type, label: id.slice(type.length + 1) };
+          nodes.set(id, node);
+        });
+        state.orders
+          .filter((order) => !['DELIVERED', 'CANCELLED'].includes(order.status))
+          .forEach((order) => orders.set(`order-${order.id}`, order));
+      }
+
+      const selectedOrder = orders.get(campusGraphSelectedId);
+      const selectedNode = nodes.get(campusGraphSelectedId);
+      if (!selectedOrder && !selectedNode) campusGraphSelectedId = 'campus';
+      const order = orders.get(campusGraphSelectedId);
+      const nodeId = order ? null : campusGraphSelectedId;
+      const connectedIds = new Set([nodeId]);
+      if (nodeId) {
+        svg.querySelectorAll('.campus-graph-edge').forEach((edge) => {
+          if (edge.getAttribute('data-from') === nodeId) connectedIds.add(edge.getAttribute('data-to'));
+          if (edge.getAttribute('data-to') === nodeId) connectedIds.add(edge.getAttribute('data-from'));
+        });
+      }
+
+      svg.querySelectorAll('.campus-graph-node').forEach((group) => {
+        const id = group.getAttribute('data-node-id');
+        const isSelected = id === campusGraphSelectedId;
+        group.classList.toggle('is-selected', isSelected);
+        group.classList.toggle('is-dimmed', !!nodeId && !connectedIds.has(id));
+      });
+      svg.querySelectorAll('.campus-graph-edge').forEach((edge) => {
+        const isOrderRoute = edge.getAttribute('data-order-id') === String(order && order.id);
+        const isConnected = edge.getAttribute('data-from') === nodeId || edge.getAttribute('data-to') === nodeId;
+        edge.classList.toggle('is-selected', !!order && isOrderRoute || !!nodeId && isConnected);
+        edge.classList.toggle('is-dimmed', !!nodeId && !isConnected);
+      });
+
+      const title = document.getElementById('campusGraphDetailTitle');
+      const description = document.getElementById('campusGraphDetailDescription');
+      const list = document.getElementById('campusGraphDetailList');
+      list.innerHTML = '';
+      let detailTitle = 'Campus Connect';
+      let detailDescription = 'One campus food network linking students, canteens, verified riders, and hostel gates.';
+      let detailItems = [
+        `${CANTEENS.length} canteens share one menu`,
+        `${riders.length} riders serve all outlets`,
+        `${HOSTEL_GATES.length} designated hostel gates`,
+      ];
+
+      if (order) {
+        detailTitle = `Order #${order.id}`;
+        detailDescription = `${order.status} · ${order.canteen} Canteen to ${order.gate}`;
+        detailItems = [
+          order.rider ? `Rider: ${order.rider}` : 'Rider: awaiting assignment',
+          `Items: ${order.items.map((item) => `${item.name} × ${item.qty}`).join(', ')}`,
+          `Delivery slot: ${order.slot}`,
+        ];
+      } else if (nodeId && nodeId.startsWith('canteen-')) {
+        const canteenId = nodeId.slice('canteen-'.length);
+        const canteen = CANTEENS.find((entry) => entry.id === canteenId);
+        const items = menuItems.filter((item) => item.canteen === canteenId);
+        detailTitle = canteen ? canteen.name : canteenId;
+        detailDescription = canteen ? `${canteen.cuisines} · ${canteen.rating} rating · ${canteen.time}` : 'Campus food outlet';
+        detailItems = [
+          `${items.filter((item) => item.available).length} of ${items.length} menu items available`,
+          ...[...new Set(items.map((item) => item.cat))].map((category) => `${category}: ${items.filter((item) => item.cat === category).length} items`),
+        ];
+      } else if (nodeId && nodeId.startsWith('category-')) {
+        const category = nodeId.slice('category-'.length);
+        const items = menuItems.filter((item) => item.cat === category);
+        detailTitle = category;
+        detailDescription = 'Menu category across the campus canteen network.';
+        detailItems = items.slice(0, 5).map((item) => `${item.name} · ${item.canteen} · ₹${item.price}`);
+        if (!detailItems.length) detailItems = ['No menu items in this category'];
+      } else if (nodeId && nodeId.startsWith('gate-')) {
+        const gate = nodeId.slice('gate-'.length);
+        detailTitle = gate;
+        detailDescription = gate === state.selectedGate ? 'Your currently selected delivery gate.' : 'Designated campus drop-off point for student deliveries.';
+        detailItems = [`${state.orders.filter((entry) => entry.gate === gate && !['DELIVERED', 'CANCELLED'].includes(entry.status)).length} active deliveries`];
+      } else if (nodeId && nodeId.startsWith('rider-')) {
+        const riderId = nodeId.slice('rider-'.length);
+        const rider = riders.find((entry) => entry.id === riderId);
+        detailTitle = riderId;
+        detailDescription = rider && rider.busy ? 'Currently assigned to an active campus delivery.' : 'Available in the shared campus rider pool.';
+        detailItems = rider && rider.busy ? [`Active order: #${rider.activeOrderId}`] : ['Ready for dispatch'];
+      }
+
+      title.textContent = detailTitle;
+      description.textContent = detailDescription;
+      detailItems.forEach((item) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = item;
+        list.appendChild(listItem);
+      });
+    }
+
+    /* -----------------------------------------------------------
+       14. INITIALIZE APP ON LOAD
     ------------------------------------------------------------ */
     window.addEventListener('DOMContentLoaded', () => {
       renderGateOptions();
       switchRole('student');
       updateNavbarBadges();
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !document.getElementById('campusGraphModal').classList.contains('hidden')) {
+          closeCampusGraph();
+        }
+      });
     });
   </script>
 </body>
