@@ -11,9 +11,10 @@
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "test": "node --test",
-    "check": "node --check server/index.js && node --check server/db.js && node --check server/auth.js && node --check server/cache.js && node --check server/recommendations.js && node --check public/app.js"
+    "check": "node --check server/index.js && node --check server/db.js && node --check server/auth.js && node --check server/cache.js && node --check server/recommendations.js && node --check server/search.js && node --check public/app.js"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.3.2",
     "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "leaflet": "^1.9.4",

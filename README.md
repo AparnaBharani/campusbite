@@ -9,6 +9,7 @@ CampusBite is a campus-first food ordering and delivery application for the Amri
 - **Separate role pages:** student storefront and order tracking, canteen order/menu desk, rider delivery queue, and campus operations dashboard.
 - **Ordering:** a student can order available items from one canteen per order. Prices, canteen ownership, totals, and order status transitions are validated by the server.
 - **Demand-based suggestions:** seasonal demand score using a 28-day order history, with stronger weights for the same weekday/hour and the latest seven days. Time buckets use `Asia/Kolkata`. Seeded sample history makes the pilot useful before live orders accumulate; actual orders are added to the history.
+- **Meaning-based dish search:** local, CPU-run MiniLM embeddings combine with BM25 and exact dish-name matching to find menu items by intent. The public pretrained model is cached locally; queries are not sent to a hosted inference service. This is a retrieval adaptation, not Swiggy's private fine-tuned model.
 - **Campus map:** OpenStreetMap tiles via Leaflet, approximate campus pickup/drop-off markers, route preview, and a moving rider marker while an order is out for delivery. The rider marker is a demo simulation, not live GPS.
 - **Caching and operations:** Redis menu cache (60 seconds), recommendation cache (5 minutes per student/time bucket), Redis OTP request limits by email and client IP, database indexes, health endpoints, and idempotent SQL migrations.
 
@@ -17,7 +18,7 @@ CampusBite is a campus-first food ordering and delivery application for the Amri
 1. **Application foundation:** separated browser assets, server modules, SQL migrations, dependency lockfile, container image, and local Compose services.
 2. **Identity and access:** exact student-domain validation, emailed one-time codes, hashed expiring challenges, persistent HTTP-only sessions, and server-provisioned roles/outlet assignments.
 3. **Campus ordering:** live availability, single-canteen carts, server-calculated totals, durable orders, canteen status flow, and rider/admin assignment workflows.
-4. **Recommendations and tracking:** 28-day weekday/hour demand signal in India time, per-student preference boost, cached forecasts, order status polling, and an OpenStreetMap campus route preview.
+4. **Recommendations, semantic search, and tracking:** 28-day weekday/hour demand signal in India time, per-student preference boost, local MiniLM semantic retrieval with BM25 and exact-name ranking, cached forecasts/search results, order status polling, and an OpenStreetMap campus route preview.
 5. **Reliability and handoff:** Redis caching/rate limits, database indexes and migration locking, focused tests, Compose validation, security-advisory cleanup, and the setup/production checklist below.
 
 ## Run locally
@@ -48,6 +49,8 @@ docker compose up --build
 
 Use `npm run dev` instead of `npm start` for automatic server restarts during development. Never commit `.env`.
 
+The app loads the quantized MiniLM search model on startup. The first run needs internet access to download its public model files; later runs reuse the local cache. Docker Compose keeps that cache in the `model_cache_data` volume. Search remains local after download, and the rest of the app stays available while the model loads.
+
 ## Provisioning partner and operations accounts
 
 Roles cannot be chosen by the user. Add approved addresses to the `ROLE_EMAILS` JSON value in `.env`, then restart the app:
@@ -74,20 +77,24 @@ Browser
   └── Express app (static UI + same-origin JSON API)
         ├── PostgreSQL: users/roles, expiring email challenges, sessions, menus, orders, demand history
         ├── Redis: shared short-lived menu/recommendation cache and OTP rate limits
+        ├── Local MiniLM/ONNX inference: query and menu embeddings + hybrid dish ranking
         └── SMTP: sign-in code delivery (Mailpit locally)
 Browser map ── OpenStreetMap tile service (no Google Maps key)
 ```
 
 - `public/` contains the responsive UI and path-based role pages.
 - `server/` contains authentication, authorization, order APIs, shared cache integration, locations, and the forecast.
+- `server/search.js` contains local sentence-embedding retrieval, menu-context enrichment, BM25 and exact-name hybrid ranking.
 - `migrations/` contains the PostgreSQL schema and pilot seed data.
 - Sessions are opaque random tokens stored as HMAC hashes in PostgreSQL and sent only in `HttpOnly`, `SameSite=Strict` cookies (`Secure` in production).
 - Every write requires a same-origin request header. Role and outlet checks happen in API middleware and SQL predicates.
 - Health probes are available at `/health/live` and `/health/ready`.
 
+See [SEARCH_SLM_METHODOLOGY.md](./SEARCH_SLM_METHODOLOGY.md) for the Swiggy reference method, CampusBite implementation details, ranking formulas, system diagram, evaluation plan, and training-data prerequisites.
+
 ## Scaling and production checklist
 
-The app tier is stateless and can be replicated behind a TLS-terminating load balancer. All replicas must share PostgreSQL, Redis, the same strong `SESSION_SECRET`, role/domain configuration, and SMTP service. Redis is required by the app; cache entries are disposable and can be rebuilt from PostgreSQL. Tune `DATABASE_POOL_MAX` per replica and use a managed PostgreSQL service, a managed Redis deployment, a production email provider, backups, monitoring, and a connection pooler when the number of app replicas grows. The Compose database/cache passwords and session secret are **development-only**.
+The app tier is stateless and can be replicated behind a TLS-terminating load balancer. All replicas must share PostgreSQL, Redis, the same strong `SESSION_SECRET`, role/domain configuration, and SMTP service. Redis is required by the app; cache entries are disposable and can be rebuilt from PostgreSQL. Each app replica loads the same versioned search model and maintains a local in-memory embedding index; use a shared read-only model artifact/cache or pre-bake and version the model for predictable production cold starts. Tune `DATABASE_POOL_MAX` per replica and use a managed PostgreSQL service, a managed Redis deployment, a production email provider, backups, monitoring, and a connection pooler when the number of app replicas grows. The Compose database/cache passwords and session secret are **development-only**.
 
 Before a public deployment:
 

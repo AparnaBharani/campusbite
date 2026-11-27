@@ -3,7 +3,7 @@ import express from 'express';
 import nodemailer from 'nodemailer';
 import pg from 'pg';
 import { createClient } from 'redis';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createCache } from './cache.js';
@@ -11,6 +11,7 @@ import { runMigrations } from './db.js';
 import { configuredRole, createOtp, hashSecret, isAllowedStudentEmail, normalizeEmail, parseRoleEmails, secretsMatch } from './auth.js';
 import { GATES } from './locations.js';
 import { predictDemand } from './recommendations.js';
+import { getSearchModelState, searchMenuItems, SEARCH_MODEL_ID, warmSearchModel } from './search.js';
 
 const { Pool } = pg;
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -40,6 +41,9 @@ await redis.connect();
 await runMigrations(pool, path.join(root, 'migrations'));
 
 const cache = createCache(redis);
+warmSearchModel().catch((error) => {
+  console.error('Could not preload the campus dish search model:', error);
+});
 const mailer = nodemailer.createTransport({
   host: process.env.SMTP_HOST || '127.0.0.1',
   port: Number(process.env.SMTP_PORT || 1025),
@@ -274,6 +278,53 @@ app.get('/api/menu', authenticate, asyncRoute(async (req, res) => {
   res.json({ items: rows });
 }));
 
+app.get('/api/search', authenticate, allowRoles('student'), asyncRoute(async (req, res) => {
+  const query = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+  if (query.length < 2 || query.length > 120 || !/[\p{L}\p{N}]/u.test(query)) {
+    return res.status(400).json({ error: 'Search must contain 2–120 letters or numbers.' });
+  }
+  if (getSearchModelState() !== 'ready') {
+    if (getSearchModelState() === 'failed') {
+      warmSearchModel().catch((error) => {
+        console.error('Could not retry loading the campus dish search model:', error);
+      });
+    }
+    return res.status(503).json({
+      error: getSearchModelState() === 'loading'
+        ? 'Smart search is loading its local model. Please try again shortly.'
+        : 'Smart search could not load its local model. Please try again shortly.',
+    });
+  }
+
+  const queryHash = createHash('sha256')
+    .update(`${SEARCH_MODEL_ID}:${query.toLocaleLowerCase()}`)
+    .digest('hex');
+  const cacheKey = `search:results:v2:${queryHash}`;
+  const cached = await cache.get(cacheKey);
+  if (cached) {
+    res.set('Cache-Control', 'private, max-age=30');
+    return res.json(cached);
+  }
+
+  let menu = await cache.get('menu:available');
+  if (!menu) {
+    const result = await pool.query(
+      `SELECT id::int AS id, canteen_id, name, category, price_paise, is_veg, available, rating
+       FROM menu_items WHERE available = true ORDER BY canteen_id, name`,
+    );
+    menu = result.rows;
+    await cache.set('menu:available', menu, 60);
+  }
+  const result = {
+    model: SEARCH_MODEL_ID,
+    mode: 'semantic-hybrid',
+    items: await searchMenuItems(query, menu),
+  };
+  await cache.set(cacheKey, result, 60);
+  res.set('Cache-Control', 'private, max-age=30');
+  res.json(result);
+}));
+
 app.get('/api/recommendations', authenticate, allowRoles('student'), asyncRoute(async (req, res) => {
   const now = new Date();
   const campusParts = new Intl.DateTimeFormat('en-US', {
@@ -473,6 +524,7 @@ app.patch('/api/menu/:id/availability', authenticate, allowRoles('canteen'), asy
   if (!result.rowCount) return res.status(404).json({ error: 'Menu item not found for this canteen.' });
   await cache.deleteByPrefix('menu:');
   await cache.deleteByPrefix('recommendations:');
+  await cache.deleteByPrefix('search:');
   res.json({ message: 'Menu availability updated.' });
 }));
 
@@ -495,6 +547,7 @@ app.post('/api/menu', authenticate, allowRoles('canteen'), asyncRoute(async (req
   );
   await cache.deleteByPrefix('menu:');
   await cache.deleteByPrefix('recommendations:');
+  await cache.deleteByPrefix('search:');
   res.status(201).json({ item: result.rows[0] });
 }));
 

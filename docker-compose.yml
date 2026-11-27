@@ -13,6 +13,9 @@ services:
       ALLOWED_STUDENT_DOMAINS: ${ALLOWED_STUDENT_DOMAINS:-cb.students.amrita.edu}
       SESSION_SECRET: local-development-only-change-before-deploying
       ROLE_EMAILS: ${ROLE_EMAILS:-}
+      MODEL_CACHE_DIR: /home/node/.cache/campusbite/transformers
+    volumes:
+      - model_cache_data:/home/node/.cache/campusbite
     ports:
       - "3000:3000"
     depends_on:
@@ -71,3 +74,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  model_cache_data:

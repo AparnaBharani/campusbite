@@ -8,7 +8,7 @@ const statusLabels = {
   ASSIGNED: "Rider assigned", PICKED_UP: "Picked up", OUT_FOR_DELIVERY: "On the way",
   DELIVERED: "Delivered", CANCELLED: "Cancelled",
 };
-const state = { user: null, menu: [], recommendations: [], orders: [], cart: new Map(), filter: "All", search: "", map: null, mapTimer: null, pollTimer: null, polling: false, riders: [] };
+const state = { user: null, menu: [], recommendations: [], orders: [], cart: new Map(), filter: "All", search: "", searchResults: null, searchStatus: "idle", searchError: "", searchTimer: null, searchRequestId: 0, map: null, mapTimer: null, pollTimer: null, polling: false, riders: [] };
 const money = (paise) => `₹${(Number(paise) / 100).toFixed(0)}`;
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
@@ -38,6 +38,10 @@ function currentPath() {
 
 function navigate(path) {
   history.pushState({}, "", path);
+  if (path !== "/student") {
+    state.searchRequestId += 1;
+    clearTimeout(state.searchTimer);
+  }
   renderRoute();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -236,10 +240,29 @@ async function loadStudentData() {
   restoreCart();
 }
 
-function renderStudent() {
-  const filtered = state.menu.filter((item) =>
+function renderStudent(restoreSearchFocus = false) {
+  const searchWasFocused = restoreSearchFocus || document.activeElement?.id === "menu-search";
+  const searchSelection = searchWasFocused && document.activeElement?.id === "menu-search"
+    ? document.activeElement.selectionStart
+    : state.search.length;
+  const normalizedQuery = state.search.trim().toLocaleLowerCase();
+  const semanticResults = state.searchResults?.query === normalizedQuery ? state.searchResults.items : null;
+  const menuResults = semanticResults || state.menu.filter((item) =>
+    !normalizedQuery || `${item.name} ${item.category} ${item.canteen_id}`.toLocaleLowerCase().includes(normalizedQuery));
+  const filtered = menuResults.filter((item) =>
     (state.filter === "All" || item.category === state.filter) &&
-    `${item.name} ${item.canteen_id}`.toLowerCase().includes(state.search.toLowerCase()));
+    item.available !== false);
+  const searchStatus = state.search.length > 0 && state.search.trim().length < 2
+    ? "Enter at least two characters to search."
+    : state.searchStatus === "loading"
+      ? "Finding dishes by meaning and name…"
+      : state.searchStatus === "waiting"
+        ? "Preparing a meaning-based search…"
+      : state.searchStatus === "ready"
+        ? `Meaning-based results · ${state.searchResults?.items.length || 0} dishes · MiniLM`
+        : state.searchStatus === "error"
+          ? `Smart search is unavailable: ${state.searchError}. Showing name and category matches.`
+          : "";
   const recommendations = state.recommendations.length
     ? state.recommendations.map((item) => `
       <article class="recommendation">
@@ -275,7 +298,8 @@ function renderStudent() {
     <section class="section-title"><div><h2>What sounds good?</h2><p>Browse live menus from across campus.</p></div></section>
     <div class="two-column">
       <section>
-        <div class="menu-tools"><div class="filters">${["All", "Rolls", "Meals", "Snacks", "Drinks"].map((item) => `<button class="filter ${state.filter === item ? "active" : ""}" data-filter="${item}">${item}</button>`).join("")}</div><input class="search-input" id="menu-search" placeholder="Search campus menu" value="${escapeHtml(state.search)}" /></div>
+        <div class="menu-tools"><div class="filters">${["All", "Rolls", "Meals", "Snacks", "Drinks"].map((item) => `<button class="filter ${state.filter === item ? "active" : ""}" data-filter="${item}">${item}</button>`).join("")}</div><input class="search-input" id="menu-search" aria-label="Search campus menu" placeholder="Try “something for breakfast”" value="${escapeHtml(state.search)}" /></div>
+        <p class="search-status" id="search-status" role="status" aria-live="polite">${escapeHtml(searchStatus)}</p>
         <div class="menu-grid">${filtered.length ? filtered.map((item) => `
           <article class="food-card"><div><span class="subtle">${escapeHtml(canteenNames[item.canteen_id])} · ${item.is_veg ? "● Veg" : "▲ Non-veg"}</span><h3>${escapeHtml(item.name)}</h3><p>${escapeHtml(item.category)} · ★ ${Number(item.rating).toFixed(1)}</p><div class="food-price">${money(item.price_paise)}</div><button class="add-button" data-add="${item.id}">ADD</button></div><div class="food-icon">${foodIcons[item.category] || "🍴"}</div></article>`).join("") : `<div class="empty-state">No items match that search.</div>`}</div>
       </section>
@@ -290,10 +314,35 @@ function renderStudent() {
   document.querySelector("#menu-search").addEventListener("input", (event) => {
     state.search = event.target.value;
     const position = event.target.selectionStart;
-    renderStudent();
+    const requestId = ++state.searchRequestId;
+    clearTimeout(state.searchTimer);
+    state.searchResults = null;
+    state.searchError = "";
+    const query = state.search.trim();
+    state.searchStatus = query.length >= 2 ? "waiting" : "idle";
+    renderStudent(true);
     const search = document.querySelector("#menu-search");
-    search.focus();
-    search.setSelectionRange(position, position);
+    if (search) {
+      search.setSelectionRange(position, position);
+      search.focus();
+    }
+    if (query.length < 2) return;
+    state.searchTimer = setTimeout(async () => {
+      if (requestId !== state.searchRequestId || currentPath() !== "/student") return;
+      state.searchStatus = "loading";
+      renderStudent(document.activeElement?.id === "menu-search");
+      try {
+        const result = await api(`/api/search?q=${encodeURIComponent(query)}`);
+        if (requestId !== state.searchRequestId || currentPath() !== "/student") return;
+        state.searchResults = { query: query.toLocaleLowerCase(), items: result.items };
+        state.searchStatus = "ready";
+      } catch (issue) {
+        if (requestId !== state.searchRequestId || currentPath() !== "/student") return;
+        state.searchError = issue.message;
+        state.searchStatus = "error";
+      }
+      renderStudent(document.activeElement?.id === "menu-search");
+    }, 250);
   });
   app.querySelectorAll("[data-add]").forEach((button) => button.addEventListener("click", () => {
     const id = Number(button.dataset.add);
@@ -341,6 +390,11 @@ function renderStudent() {
       }
     }
   });
+  if (searchWasFocused) {
+    const search = document.querySelector("#menu-search");
+    search?.focus();
+    search?.setSelectionRange(searchSelection, searchSelection);
+  }
 }
 
 function orderCard(order, actions = "") {

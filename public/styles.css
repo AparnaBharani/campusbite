@@ -91,6 +91,7 @@ h1, h2, h3 { font-family: "Segoe UI", sans-serif; letter-spacing: -.045em; }
 .filter { padding: 8px 12px; border: 1px solid var(--line); border-radius: 30px; background: white; color: #656872; font-size: 11px; font-weight: 800; }
 .filter.active { border-color: var(--ink); background: var(--ink); color: white; }
 .search-input { width: min(260px, 100%); padding: 9px 12px; font-size: 12px; }
+.search-status { min-height: 16px; margin: -5px 0 10px; color: var(--muted); font-size: 11px; }
 .menu-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .food-card { display: flex; min-height: 134px; align-items: center; justify-content: space-between; gap: 14px; padding: 17px; transition: .18s ease; }
 .food-card:hover, .outlet-card:hover { border-color: #f5c5b2; box-shadow: var(--shadow); transform: translateY(-2px); }
