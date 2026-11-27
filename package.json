@@ -1,0 +1,24 @@
+{
+  "name": "campus-bite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Role-based campus food ordering and delivery",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test",
+    "check": "node --check server/index.js && node --check server/db.js && node --check server/auth.js && node --check server/cache.js && node --check server/recommendations.js && node --check public/app.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "leaflet": "^1.9.4",
+    "nodemailer": "^10.6.1",
+    "pg": "^8.16.3",
+    "redis": "^5.5.6"
+  }
+}

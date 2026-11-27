@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Swiggy Campus Connect — Amrita Ettimadai</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans (Exact Swiggy Typography) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            swiggy: {
+              orange: '#FF5200',
+              orangeLight: '#FC8019',
+              orangeTint: '#FFF3EC',
+              ink: '#02060C',
+              charcoal: '#3D4152',
+              slate: '#686B78',
+              surface: '#F0F0F5',
+              green: '#1BA672',
+              veg: '#0F8A65',
+              nonveg: '#E43B4F',
+            },
+          },
+          boxShadow: {
+            navbar: '0 15px 40px -20px rgba(40,44,63,.15)',
+            addBtn: '0 3px 8px rgba(40,44,63,.12)',
+            card: '0 2px 12px rgba(2,6,12,.06)',
+            cardHover: '0 10px 28px rgba(2,6,12,.10)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Minimal utility styles for scrollbars and smooth transitions */
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #02060C;
+      background-color: #FFFFFF;
+      -webkit-font-smoothing: antialiased;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Custom Toggle Switch for Canteen Menu Manager */
+    .toggle-checkbox:checked {
+      right: 0;
+      border-color: #1BA672;
+    }
+    .toggle-checkbox:checked + .toggle-label {
+      background-color: #1BA672;
+    }
+  </style>
+</head>
+<body class="bg-white text-swiggy-ink min-h-screen flex flex-col selection:bg-swiggy-orange selection:text-white">
+
+  <!-- =========================================================
+       STICKY SWIGGY NAVIGATION BAR (76px)
+  ========================================================== -->
+  <header class="sticky top-0 z-40 bg-white shadow-navbar border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[76px] flex items-center justify-between gap-3">
+      
+      <!-- Left: Swiggy Logo + Campus Connect + Location Selector -->
+      <div class="flex items-center gap-3 sm:gap-5 min-w-0">
+        <!-- Brand Logo -->
+        <button onclick="switchRole('student')" class="flex items-center gap-2.5 group shrink-0 focus:outline-none">
+          <div class="w-10 h-10 rounded-xl bg-swiggy-orange flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+            <!-- Swiggy-inspired Location Pin / Flame SVG -->
+            <svg width="22" height="24" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 0.5C5.64873 0.5 0.5 5.64873 0.5 12C0.5 19.8 10.6 26.8 11.4 27.3C11.76 27.55 12.24 27.55 12.6 27.3C13.4 26.8 23.5 19.8 23.5 12C23.5 5.64873 18.3513 0.5 12 0.5Z" fill="#FFFFFF"/>
+              <path d="M13.2 7.2C13.2 7.2 15.8 9.2 15.8 12.1C15.8 14.3 14.1 16 12 16C9.9 16 8.2 14.3 8.2 12.1C8.2 10.8 8.9 9.7 9.6 9.1C9.5 10.2 10.1 10.9 10.9 10.9C11.7 10.9 12.2 10.2 12.2 9.2C12.2 8.2 12.7 7.5 13.2 7.2Z" fill="#FF5200"/>
+              <circle cx="12" cy="19.2" r="1.4" fill="#FF5200"/>
+            </svg>
+          </div>
+          <div class="text-left hidden sm:block">
+            <div class="text-[15px] font-extrabold tracking-tight text-swiggy-ink leading-none">Campus Connect</div>
+            <div class="text-[11px] font-bold text-swiggy-orange tracking-wide uppercase mt-0.5">Swiggy Prototype</div>
+          </div>
+        </button>
+
+        <!-- Vertical Divider -->
+        <div class="hidden md:block h-7 w-[1px] bg-gray-200"></div>
+
+        <!-- Interactive Location / Default Hostel Gate Dropdown -->
+        <div class="relative" id="locationDropdownWrapper">
+          <button onclick="toggleLocationDropdown()" class="flex items-center gap-1.5 py-2 px-2 rounded-xl hover:bg-swiggy-surface transition-colors text-left group">
+            <span class="text-sm font-extrabold text-swiggy-ink border-b-2 border-swiggy-ink group-hover:text-swiggy-orange group-hover:border-swiggy-orange transition-colors truncate max-w-[130px] sm:max-w-[165px]">
+              Amrita Ettimadai
+            </span>
+            <span id="navSelectedGate" class="hidden lg:inline-block text-xs font-medium text-swiggy-slate truncate max-w-[120px]">
+              • Amritam Gate
+            </span>
+            <svg class="w-4 h-4 text-swiggy-orange shrink-0 transition-transform" id="locChevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Dropdown Popover -->
+          <div id="locationDropdown" class="hidden absolute left-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-3 z-50">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-swiggy-slate px-2 pb-2 border-b border-gray-100">
+              Select Default Hostel Gate
+            </div>
+            <div class="mt-2 space-y-1" id="gateOptionsList">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Action Controls -->
+      <div class="flex items-center gap-1.5 sm:gap-3 lg:gap-4 shrink-0">
+        <!-- Hackathon Pitch Button -->
+        <button onclick="openPitchModal()" class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold text-swiggy-charcoal hover:text-swiggy-orange hover:bg-swiggy-orangeTint transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>Hackathon Pitch</span>
+        </button>
+
+        <!-- Survey External Link with NEW Badge -->
+        <a href="https://forms.cloud.microsoft/r/pwAVQfgJRg" target="_blank" rel="noopener noreferrer" class="hidden sm:flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-sm font-bold text-swiggy-charcoal hover:text-swiggy-orange hover:bg-swiggy-orangeTint transition-colors relative">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <span>Survey</span>
+          <span class="text-[9px] font-extrabold bg-swiggy-orange text-white px-1.5 py-0.5 rounded-full leading-none">NEW</span>
+        </a>
+
+        <!-- Track Order Button -->
+        <button onclick="openTrackerModal()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-sm font-bold text-swiggy-charcoal hover:text-swiggy-orange hover:bg-swiggy-orangeTint transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="hidden sm:inline">Track Order</span>
+          <span id="navActiveOrderBadge" class="hidden text-[11px] font-extrabold bg-swiggy-orange text-white min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">0</span>
+        </button>
+
+        <!-- Cart Button -->
+        <button onclick="openCartDrawer()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold text-swiggy-charcoal hover:text-swiggy-green hover:bg-emerald-50 transition-colors">
+          <div class="relative flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <span id="navCartCount" class="ml-1.5 text-xs font-extrabold bg-swiggy-green text-white min-w-[22px] h-[22px] px-1.5 rounded-md flex items-center justify-center">0</span>
+          </div>
+          <span class="hidden sm:inline">Cart</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Role Switcher Strip (Clean Swiggy Sub-header for Hackathon Judges) -->
+    <div class="bg-[#FAFAFC] border-t border-gray-100">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 py-2 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0" id="roleSwitcherTabs">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-swiggy-slate mr-1 hidden lg:inline">Demo Persona:</span>
+          <button onclick="switchRole('student')" data-role="student" class="role-tab px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all whitespace-nowrap">
+            Student
+          </button>
+          <button onclick="switchRole('canteen')" data-role="canteen" class="role-tab px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all whitespace-nowrap">
+            Canteen Partner
+          </button>
+          <button onclick="switchRole('rider')" data-role="rider" class="role-tab px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all whitespace-nowrap">
+            Campus Rider
+          </button>
+          <button onclick="switchRole('admin')" data-role="admin" class="role-tab px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all whitespace-nowrap">
+            Admin Ops
+          </button>
+          <button onclick="switchRole('outside')" data-role="outside" class="role-tab px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all whitespace-nowrap">
+            Outside (Phase 2)
+          </button>
+        </div>
+
+        <!-- Mobile-only quick Hackathon Pitch button -->
+        <button onclick="openPitchModal()" class="md:hidden shrink-0 text-xs font-bold text-swiggy-orange underline">
+          Pitch Deck
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       MAIN WORKSPACE CONTAINER
+  ========================================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- =======================================================
+         ROLE 1: STUDENT VIEW (Authentic Swiggy Storefront)
+    ======================================================== -->
+    <section id="view-student" class="role-view space-y-10">
+
+      <!-- 1. Swiggy-style Campus Banner -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FF5200] via-[#FC8019] to-[#FF6D24] text-white p-5 sm:p-7 shadow-card">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div class="space-y-2 max-w-2xl">
+            <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold tracking-wide">
+              <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              <span>SWIGGY CAMPUS CONNECT • AMRITA ETTIMADAI</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+              Skip the canteen queue! Delivered right to your hostel gate.
+            </h1>
+            <p class="text-sm sm:text-[15px] text-white/90 font-medium">
+              Unified menu across MBA, IT &amp; MC canteens with a shared campus delivery crew and smart peak-hour slots.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3 shrink-0">
+            <a href="https://forms.cloud.microsoft/r/pwAVQfgJRg" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-white text-swiggy-orange hover:bg-orange-50 font-extrabold text-sm px-5 py-3 rounded-xl shadow-md transition-transform hover:scale-[1.02]">
+              <span>Take 1–2 Min Student Survey</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        <!-- Subtle Decorative Circles -->
+        <div class="pointer-events-none absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/10"></div>
+        <div class="pointer-events-none absolute right-24 -bottom-16 w-36 h-36 rounded-full bg-white/10"></div>
+      </div>
+
+      <!-- 2. "What's on your mind?" Category Carousel -->
+      <div>
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-swiggy-ink">What's on your mind?</h2>
+          <span class="text-xs font-semibold text-swiggy-slate">Tap a category to filter</span>
+        </div>
+        <div class="flex items-center gap-5 sm:gap-8 overflow-x-auto no-scrollbar pb-2" id="mindCategoryRow">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <hr class="border-gray-100" />
+
+      <!-- 3. "Top Campus Canteens in Amrita Ettimadai" -->
+      <div>
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-swiggy-ink">Top Campus Canteens in Amrita Ettimadai</h2>
+            <p class="text-xs sm:text-sm text-swiggy-slate mt-0.5">Click any canteen card to filter its menu below</p>
+          </div>
+          <button onclick="setCanteenFilter('All')" id="resetCanteenFilterBtn" class="hidden text-xs font-bold text-swiggy-orange hover:underline">
+            Show All Canteens
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="topCanteensGrid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <hr class="border-gray-100" />
+
+      <!-- 4. "Order from Campus Canteens" Unified Menu -->
+      <div id="unifiedMenuSection">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight text-swiggy-ink">Order from Campus Canteens</h2>
+            <p class="text-xs sm:text-sm text-swiggy-slate mt-0.5">Compare items &amp; prices across MBA, IT, and MC in one place</p>
+          </div>
+
+          <!-- Search Input -->
+          <div class="relative w-full md:w-80">
+            <svg class="w-4 h-4 text-swiggy-slate absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+            </svg>
+            <input
+              id="studentSearchInput"
+              type="text"
+              placeholder="Search for chicken roll, masala dosa, fried rice..."
+              oninput="renderStudentMenu()"
+              class="w-full pl-10 pr-4 py-2.5 text-sm bg-swiggy-surface border border-transparent focus:border-swiggy-orange focus:bg-white rounded-xl outline-none transition-all font-medium text-swiggy-ink placeholder:text-swiggy-slate"
+            />
+          </div>
+        </div>
+
+        <!-- Swiggy-Style Pill Filters -->
+        <div class="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-4 mb-2" id="studentFilterPills">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Food Items Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="studentMenuGrid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         ROLE 2: CANTEEN PARTNER VIEW (Swiggy Partner Dashboard)
+    ======================================================== -->
+    <section id="view-canteen" class="role-view hidden space-y-8">
+      <!-- Header & Canteen Switcher -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-200 rounded-2xl p-5 shadow-card">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-swiggy-orange bg-swiggy-orangeTint px-2.5 py-1 rounded-md">Swiggy Partner Dashboard</span>
+            <span class="text-xs font-bold text-swiggy-green flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-swiggy-green"></span> Outlet Live</span>
+          </div>
+          <h2 class="text-2xl font-extrabold text-swiggy-ink mt-2">Canteen Operations &amp; Menu Control</h2>
+          <p class="text-sm text-swiggy-slate">Accept orders, mark items ready for the shared rider pool, and manage real-time stock.</p>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+          <label for="canteenPartnerSelect" class="text-xs font-bold uppercase text-swiggy-slate">Active Outlet:</label>
+          <select id="canteenPartnerSelect" onchange="renderCanteenDashboard()" class="bg-swiggy-surface border border-gray-200 text-swiggy-ink font-extrabold text-sm rounded-xl px-4 py-2.5 outline-none focus:border-swiggy-orange cursor-pointer">
+            <option value="MBA">MBA Canteen</option>
+            <option value="IT">IT Canteen</option>
+            <option value="MC">MC Canteen</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="canteenKpiGrid">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Two-Column Layout: Incoming Orders & Menu Manager -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Incoming Orders (5 cols) -->
+        <div class="lg:col-span-5 bg-white border border-gray-200 rounded-2xl p-5 shadow-card space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-extrabold text-swiggy-ink">Incoming Orders</h3>
+            <span id="canteenIncomingBadge" class="text-xs font-bold bg-swiggy-orangeTint text-swiggy-orange px-2.5 py-1 rounded-full">0 active</span>
+          </div>
+          <div id="canteenOrdersList" class="space-y-3">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Menu & Stock Manager (7 cols) -->
+        <div class="lg:col-span-7 bg-white border border-gray-200 rounded-2xl p-5 shadow-card space-y-5">
+          <div>
+            <h3 class="text-lg font-extrabold text-swiggy-ink">Menu &amp; Stock Manager</h3>
+            <p class="text-xs text-swiggy-slate mt-0.5">Toggling an item Sold Out immediately removes it from the Student storefront.</p>
+          </div>
+
+          <!-- Add New Item Form -->
+          <form id="canteenAddItemForm" onsubmit="handleAddMenuItem(event)" class="bg-swiggy-surface/70 border border-gray-200 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div class="sm:col-span-4">
+              <label class="block text-[11px] font-bold text-swiggy-slate mb-1">Dish Name</label>
+              <input id="newDishName" type="text" required placeholder="e.g., Egg Puff" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg outline-none focus:border-swiggy-orange font-medium" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-[11px] font-bold text-swiggy-slate mb-1">Price (₹)</label>
+              <input id="newDishPrice" type="number" min="5" required placeholder="35" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg outline-none focus:border-swiggy-orange font-medium" />
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block text-[11px] font-bold text-swiggy-slate mb-1">Category</label>
+              <select id="newDishCategory" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg outline-none focus:border-swiggy-orange font-semibold">
+                <option value="Snacks">Snacks</option>
+                <option value="Rolls">Rolls</option>
+                <option value="Meals">Meals</option>
+                <option value="Drinks">Drinks</option>
+              </select>
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block text-[11px] font-bold text-swiggy-slate mb-1">Dietary</label>
+              <select id="newDishVeg" class="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg outline-none focus:border-swiggy-orange font-semibold">
+                <option value="true">Pure Veg</option>
+                <option value="false">Non-Veg</option>
+              </select>
+            </div>
+            <div class="sm:col-span-12 flex justify-end">
+              <button type="submit" class="bg-swiggy-orange hover:bg-swiggy-orangeLight text-white font-bold text-xs px-4 py-2.5 rounded-lg shadow-sm transition-colors">
+                + Add Item to Canteen Menu
+              </button>
+            </div>
+          </form>
+
+          <!-- Menu Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-gray-200 text-[11px] font-bold uppercase tracking-wider text-swiggy-slate">
+                  <th class="py-2.5 px-2">Item</th>
+                  <th class="py-2.5 px-2">Category</th>
+                  <th class="py-2.5 px-2">Price</th>
+                  <th class="py-2.5 px-2 text-right">Stock Status</th>
+                </tr>
+              </thead>
+              <tbody id="canteenMenuTableBody" class="divide-y divide-gray-100 text-sm">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         ROLE 3: ADMIN OPS VIEW (Swiggy Central Command Centre)
+    ======================================================== -->
+    <section id="view-admin" class="role-view hidden space-y-8">
+      <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-wider text-swiggy-orange bg-swiggy-orangeTint px-2.5 py-1 rounded-md">Central Operations</span>
+          <h2 class="text-2xl font-extrabold text-swiggy-ink mt-2">Campus Command Centre</h2>
+          <p class="text-sm text-swiggy-slate">Monitor all 3 canteens and allocate the shared 5-rider campus fleet dynamically.</p>
+        </div>
+        <div class="text-xs font-semibold text-swiggy-slate bg-swiggy-surface px-3.5 py-2 rounded-xl">
+          Shared Pool Model • MBA + IT + MC
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="adminKpiGrid">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Fleet Status Strip -->
+      <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-card">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-extrabold text-swiggy-ink">Fixed Campus Fleet Status (5 Riders)</h3>
+          <span class="text-xs font-medium text-swiggy-slate">Auto-updates on assignment &amp; delivery</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" id="adminFleetStrip">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Order Allocation Queue -->
+      <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-card space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-extrabold text-swiggy-ink">Live Campus Order Allocation</h3>
+            <p class="text-xs text-swiggy-slate">Orders marked READY by canteens can be assigned to any available campus rider.</p>
+          </div>
+        </div>
+        <div id="adminOrderList" class="space-y-3">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         ROLE 4: CAMPUS RIDER VIEW (Swiggy Delivery Partner App)
+    ======================================================== -->
+    <section id="view-rider" class="role-view hidden space-y-8">
+      <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-swiggy-green bg-emerald-50 px-2.5 py-1 rounded-md">Swiggy Delivery Partner</span>
+            <span id="riderOnlineBadge" class="text-xs font-bold text-swiggy-green">● On Duty</span>
+          </div>
+          <h2 class="text-2xl font-extrabold text-swiggy-ink mt-2">Campus Delivery Queue</h2>
+          <p class="text-sm text-swiggy-slate">Switch between Rider 01–05 to complete deliveries assigned from Admin Ops.</p>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+          <label for="riderPersonaSelect" class="text-xs font-bold uppercase text-swiggy-slate">Active Rider:</label>
+          <select id="riderPersonaSelect" onchange="renderRiderDashboard()" class="bg-swiggy-surface border border-gray-200 text-swiggy-ink font-extrabold text-sm rounded-xl px-4 py-2.5 outline-none focus:border-swiggy-orange cursor-pointer">
+            <option value="Rider 01">Rider 01</option>
+            <option value="Rider 02">Rider 02</option>
+            <option value="Rider 03">Rider 03</option>
+            <option value="Rider 04">Rider 04</option>
+            <option value="Rider 05">Rider 05</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Rider KPI Stats -->
+      <div class="grid grid-cols-3 gap-4" id="riderKpiGrid">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Assigned Deliveries -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-extrabold text-swiggy-ink">Assigned Deliveries</h3>
+        <div id="riderOrdersList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         ROLE 5: OUTSIDE RIDER VIEW (Phase 2 Roadmap Preview)
+    ======================================================== -->
+    <section id="view-outside" class="role-view hidden space-y-8">
+      <div class="relative overflow-hidden rounded-2xl bg-swiggy-ink text-white p-7 sm:p-10 shadow-card">
+        <div class="max-w-2xl relative z-10 space-y-4">
+          <span class="inline-block text-xs font-extrabold uppercase tracking-wider bg-swiggy-orange text-white px-3 py-1 rounded-full">
+            Phase 2 • Scheduled External Logistics
+          </span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+            Outside Restaurant Bulk-Delivery to Main Gate
+          </h2>
+          <p class="text-sm sm:text-base text-gray-300 leading-relaxed">
+            External restaurant delivery is intentionally excluded from our Phase 1 MVP to keep campus entry controlled and unit economics sharp. Once internal canteen order density is validated at Amrita Ettimadai, Phase 2 unlocks scheduled batch deliveries from Coimbatore city restaurants.
+          </p>
+        </div>
+        <div class="pointer-events-none absolute -right-10 -bottom-10 w-64 h-64 rounded-full bg-swiggy-orange/20 blur-2xl"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-card space-y-3">
+          <div class="w-11 h-11 rounded-xl bg-swiggy-orangeTint text-swiggy-orange flex items-center justify-center font-extrabold text-lg">01</div>
+          <h3 class="text-lg font-extrabold text-swiggy-ink">Scheduled Batch Windows</h3>
+          <p class="text-sm text-swiggy-slate leading-relaxed">
+            Students place outside orders before fixed cutoff slots (e.g., 12:00 PM lunch batch, 7:00 PM dinner batch) to pool delivery costs down to ₹15–₹25 per student.
+          </p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-card space-y-3">
+          <div class="w-11 h-11 rounded-xl bg-emerald-50 text-swiggy-green flex items-center justify-center font-extrabold text-lg">02</div>
+          <h3 class="text-lg font-extrabold text-swiggy-ink">Restaurant-Wise Batching</h3>
+          <p class="text-sm text-swiggy-slate leading-relaxed">
+            A single outside Swiggy partner collects multiple student orders from popular partner restaurants in Coimbatore and brings them straight to the Main Campus Gate.
+          </p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-card space-y-3">
+          <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold text-lg">03</div>
+          <h3 class="text-lg font-extrabold text-swiggy-ink">Gate-to-Hostel Relay</h3>
+          <p class="text-sm text-swiggy-slate leading-relaxed">
+            Zero unauthorized outside vehicles inside campus. Our verified internal Campus Riders pick up batched bags at the Main Gate and complete the last-mile hostel drop.
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-swiggy-surface rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h4 class="text-base font-extrabold text-swiggy-ink">Want outside food delivery at Amrita Ettimadai?</h4>
+          <p class="text-sm text-swiggy-slate">Tell us which restaurants &amp; time slots matter most in our 1–2 min student survey.</p>
+        </div>
+        <a href="https://forms.cloud.microsoft/r/pwAVQfgJRg" target="_blank" rel="noopener noreferrer" class="shrink-0 bg-swiggy-orange hover:bg-swiggy-orangeLight text-white font-bold text-sm px-5 py-3 rounded-xl shadow-sm transition-colors">
+          Share Your Thoughts →
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================================================
+       SWIGGY-STYLE FOOTER
+  ========================================================== -->
+  <footer class="bg-swiggy-surface border-t border-gray-200 mt-14">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-swiggy-slate">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-swiggy-orange text-white flex items-center justify-center font-extrabold text-xs">S</div>
+        <div>
+          <span class="font-extrabold text-swiggy-ink">Swiggy Campus Connect — Amrita Ettimadai</span>
+          <span class="hidden sm:inline"> • Swiggy Food for Thought Hackathon Prototype</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 font-semibold">
+        <button onclick="openPitchModal()" class="hover:text-swiggy-orange transition-colors">Hackathon Pitch</button>
+        <a href="https://forms.cloud.microsoft/r/pwAVQfgJRg" target="_blank" rel="noopener noreferrer" class="text-swiggy-orange hover:underline">Student Survey</a>
+        <span>Independent Concept Demo</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =========================================================
+       SLIDE-OVER CART & CHECKOUT DRAWER (Swiggy Checkout Style)
+  ========================================================== -->
+  <div id="cartDrawerBackdrop" onclick="closeCartDrawer()" class="fixed inset-0 bg-black/50 backdrop-blur-[1px] z-50 hidden transition-opacity"></div>
+  <aside id="cartDrawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-swiggy-surface z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Drawer Header -->
+    <div class="bg-white px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-extrabold text-swiggy-ink">Checkout Cart</h3>
+        <p id="cartCanteenSubtitle" class="text-xs font-semibold text-swiggy-slate">No canteen selected</p>
+      </div>
+      <button onclick="closeCartDrawer()" class="w-9 h-9 rounded-full hover:bg-swiggy-surface flex items-center justify-center text-swiggy-charcoal transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Drawer Scrollable Body -->
+    <div id="cartDrawerBody" class="flex-1 overflow-y-auto p-4 space-y-4">
+      <!-- Rendered dynamically by JS -->
+    </div>
+
+    <!-- Drawer Footer CTA -->
+    <div id="cartDrawerFooter" class="bg-white p-4 border-t border-gray-200 hidden">
+      <button onclick="placeDemoOrder()" class="w-full bg-swiggy-green hover:bg-[#159363] text-white font-extrabold text-sm py-3.5 rounded-xl shadow-md flex items-center justify-between px-5 transition-colors">
+        <span id="cartPayAmountBtn">TO PAY ₹0</span>
+        <span class="flex items-center gap-1">PLACE DEMO ORDER →</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =========================================================
+       LIVE ORDER TRACKER MODAL
+  ========================================================== -->
+  <div id="trackerModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-[1px] p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-extrabold text-swiggy-ink">Live Campus Order Tracker</h3>
+          <p class="text-xs text-swiggy-slate">Updates in real time as Canteen, Admin &amp; Rider take actions</p>
+        </div>
+        <button onclick="closeTrackerModal()" class="w-8 h-8 rounded-full hover:bg-swiggy-surface flex items-center justify-center text-swiggy-charcoal">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="trackerModalBody" class="p-6 overflow-y-auto space-y-6">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       SINGLE-CANTEEN CONFLICT MODAL ("Items already in cart")
+  ========================================================== -->
+  <div id="cartConflictModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/55 backdrop-blur-[1px] p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <h3 class="text-lg font-extrabold text-swiggy-ink">Items already in cart</h3>
+      <p id="cartConflictMessage" class="text-sm text-swiggy-slate leading-relaxed">
+        Your cart contains items from another canteen. Would you like to reset your cart and add this item?
+      </p>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="closeConflictModal()" class="py-2.5 px-4 rounded-xl border-2 border-swiggy-green text-swiggy-green font-extrabold text-sm hover:bg-emerald-50 transition-colors">
+          NO
+        </button>
+        <button onclick="confirmResetCartAndAdd()" class="py-2.5 px-4 rounded-xl bg-swiggy-green text-white font-extrabold text-sm hover:bg-[#159363] transition-colors">
+          YES, START AFRESH
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       HACKATHON PITCH DECK MODAL
+  ========================================================== -->
+  <div id="pitchModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/55 backdrop-blur-[1px] p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="bg-swiggy-orange text-white px-6 py-5 flex items-center justify-between">
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-wider text-white/85">Swiggy Food for Thought Hackathon</div>
+          <h3 class="text-xl font-extrabold">Swiggy Campus Connect — Concept Pitch</h3>
+        </div>
+        <button onclick="closePitchModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6 text-sm">
+        <!-- Problem & Solution -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-red-50/70 border border-red-100 rounded-xl p-4 space-y-1.5">
+            <div class="text-xs font-extrabold uppercase text-swiggy-nonveg">01 / The Campus Problem</div>
+            <h4 class="font-extrabold text-swiggy-ink text-base">Small breaks. Endless queues.</h4>
+            <p class="text-swiggy-charcoal leading-relaxed">
+              At residential campuses like Amrita Ettimadai, students lose short breaks walking to MBA, IT, or MC canteens, facing long queues and unpredictable item stock with no hostel-gate delivery.
+            </p>
+          </div>
+          <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-4 space-y-1.5">
+            <div class="text-xs font-extrabold uppercase text-swiggy-green">02 / The Proposed Solution</div>
+            <h4 class="font-extrabold text-swiggy-ink text-base">One campus. One food feed.</h4>
+            <p class="text-swiggy-charcoal leading-relaxed">
+              A unified Swiggy storefront combining all 3 canteens with canteen-owned live stock toggles, backed by a centrally managed fixed pool of verified on-campus riders.
+            </p>
+          </div>
+        </div>
+
+        <!-- 3 Service Rules -->
+        <div>
+          <div class="text-xs font-extrabold uppercase text-swiggy-orange mb-2">03 / Three Core Service Rules</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="bg-swiggy-surface rounded-xl p-3.5">
+              <div class="font-extrabold text-swiggy-ink">1. Unified Menu</div>
+              <p class="text-xs text-swiggy-slate mt-1">Search once and compare dishes &amp; prices across MBA, IT, and MC canteens.</p>
+            </div>
+            <div class="bg-swiggy-surface rounded-xl p-3.5">
+              <div class="font-extrabold text-swiggy-ink">2. Shared Rider Pool</div>
+              <p class="text-xs text-swiggy-slate mt-1">5 fixed campus riders dynamically assigned across all canteens by Admin Ops.</p>
+            </div>
+            <div class="bg-swiggy-surface rounded-xl p-3.5">
+              <div class="font-extrabold text-swiggy-ink">3. Smart Peak Slots</div>
+              <p class="text-xs text-swiggy-slate mt-1">Instant delivery off-peak; scheduled 15-min slots during lunch &amp; evening rush.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Value Exchange -->
+        <div>
+          <div class="text-xs font-extrabold uppercase text-swiggy-orange mb-2">04 / Stakeholder Value Exchange</div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div class="border border-gray-200 rounded-xl p-3">
+              <div class="font-extrabold text-swiggy-ink">Students</div>
+              <p class="text-swiggy-slate mt-1">Zero queues, live stock visibility &amp; hostel-gate drop.</p>
+            </div>
+            <div class="border border-gray-200 rounded-xl p-3">
+              <div class="font-extrabold text-swiggy-ink">Swiggy</div>
+              <p class="text-swiggy-slate mt-1">High-frequency Gen-Z habit loop &amp; micro-logistics pilot.</p>
+            </div>
+            <div class="border border-gray-200 rounded-xl p-3">
+              <div class="font-extrabold text-swiggy-ink">Canteens</div>
+              <p class="text-swiggy-slate mt-1">Digital order queue &amp; instant stock control.</p>
+            </div>
+            <div class="border border-gray-200 rounded-xl p-3">
+              <div class="font-extrabold text-swiggy-ink">College</div>
+              <p class="text-swiggy-slate mt-1">Verified riders, designated gates &amp; campus safety.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-Phase Pilot Roadmap -->
+        <div>
+          <div class="text-xs font-extrabold uppercase text-swiggy-orange mb-2">05 / 4-Phase Pilot Roadmap</div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div class="bg-orange-50/70 border border-orange-100 rounded-xl p-3">
+              <div class="font-extrabold text-swiggy-orange">Phase 1: Discovery</div>
+              <p class="text-swiggy-charcoal mt-1">Student survey validation &amp; college permissions.</p>
+            </div>
+            <div class="bg-orange-50/70 border border-orange-100 rounded-xl p-3">
+              <div class="font-extrabold text-swiggy-orange">Phase 2: Pilot</div>
+              <p class="text-swiggy-charcoal mt-1">Launch 3 canteens + 5 riders across hostel gates.</p>
+            </div>
+            <div class="bg-orange-50/70 border border-orange-100 rounded-xl p-3">
+              <div class="font-extrabold text-swiggy-orange">Phase 3: Tune</div>
+              <p class="text-swiggy-charcoal mt-1">Optimize delivery SLA, slot caps &amp; unit economics.</p>
+            </div>
+            <div class="bg-orange-50/70 border border-orange-100 rounded-xl p-3">
+              <div class="font-extrabold text-swiggy-orange">Phase 4: Scale</div>
+              <p class="text-swiggy-charcoal mt-1">Add outside batch delivery &amp; expand to other campuses.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-swiggy-surface border-t border-gray-200 flex items-center justify-between gap-3">
+        <a href="https://forms.cloud.microsoft/r/pwAVQfgJRg" target="_blank" rel="noopener noreferrer" class="text-xs font-extrabold text-swiggy-orange hover:underline">
+          📋 Open Student Validation Survey ↗
+        </a>
+        <button onclick="closePitchModal()" class="bg-swiggy-ink text-white text-xs font-bold px-5 py-2.5 rounded-xl hover:bg-swiggy-charcoal transition-colors">
+          Back to Interactive Demo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       TOAST NOTIFICATION CONTAINER
+  ========================================================== -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- =========================================================
+       APPLICATION LOGIC & STATE MANAGEMENT
+  ========================================================== -->
+  <script>
+    /* -----------------------------------------------------------
+       1. INITIAL DATA & APPLICATION STATE
+    ------------------------------------------------------------ */
+    const HOSTEL_GATES = [
+      'Amritam Gate',
+      'Vasishta Gate',
+      'Ganga Gate',
+      'Yagnavalkya Gate',
+    ];
+
+    const DELIVERY_SLOTS = [
+      { id: 'instant', label: 'Instant Delivery (12–15 mins)', tag: 'FASTEST' },
+      { id: 'slot-1', label: '1:00 PM – 1:15 PM', tag: 'LUNCH SLOT' },
+      { id: 'slot-2', label: '4:30 PM – 4:45 PM', tag: 'SNACK SLOT' },
+      { id: 'slot-3', label: '7:30 PM – 7:45 PM', tag: 'DINNER SLOT' },
+    ];
+
+    const CANTEENS = [
+      {
+        id: 'MBA',
+        name: 'MBA Canteen',
+        rating: '4.6',
+        time: '10–15 mins',
+        cuisines: 'Rolls, Dosa, Snacks',
+        offer: 'ZERO QUEUE • ₹25 DELIVERY',
+        gradient: 'from-[#FF5200] to-[#C83A00]',
+        accent: '#FFF3EC',
+      },
+      {
+        id: 'IT',
+        name: 'IT Canteen',
+        rating: '4.5',
+        time: '12–18 mins',
+        cuisines: 'Rolls, Fried Rice, Tea',
+        offer: 'FRESH & FAST • ₹25 DELIVERY',
+        gradient: 'from-[#1E293B] to-[#0F172A]',
+        accent: '#F1F5F9',
+      },
+      {
+        id: 'MC',
+        name: 'MC Canteen',
+        rating: '4.4',
+        time: '10–15 mins',
+        cuisines: 'Sandwiches, Rice, Juices',
+        offer: 'HOSTEL DROP • ₹25 DELIVERY',
+        gradient: 'from-[#0F8A65] to-[#065F46]',
+        accent: '#ECFDF5',
+      },
+    ];
+
+    // 12 Pre-loaded Realistic Campus Items
+    let menuItems = [
+      { id: 1,  name: 'Chicken Roll',    canteen: 'MBA', price: 80, cat: 'Rolls',  veg: false, rating: 4.7, bestseller: true,  available: true, art: 'roll-nonveg' },
+      { id: 2,  name: 'Chicken Roll',    canteen: 'IT',  price: 75, cat: 'Rolls',  veg: false, rating: 4.5, bestseller: true,  available: true, art: 'roll-nonveg' },
+      { id: 3,  name: 'Paneer Roll',     canteen: 'MBA', price: 70, cat: 'Rolls',  veg: true,  rating: 4.6, bestseller: false, available: true, art: 'roll-veg' },
+      { id: 4,  name: 'Veg Sandwich',    canteen: 'MC',  price: 45, cat: 'Snacks', veg: true,  rating: 4.4, bestseller: true,  available: true, art: 'sandwich' },
+      { id: 5,  name: 'Masala Dosa',     canteen: 'IT',  price: 45, cat: 'Meals',  veg: true,  rating: 4.5, bestseller: false, available: true, art: 'dosa' },
+      { id: 6,  name: 'Masala Dosa',     canteen: 'MBA', price: 40, cat: 'Meals',  veg: true,  rating: 4.7, bestseller: true,  available: true, art: 'dosa' },
+      { id: 7,  name: 'Fried Rice',      canteen: 'MC',  price: 85, cat: 'Meals',  veg: true,  rating: 4.3, bestseller: false, available: true, art: 'rice' },
+      { id: 8,  name: 'Veg Fried Rice',  canteen: 'IT',  price: 90, cat: 'Meals',  veg: true,  rating: 4.5, bestseller: false, available: true, art: 'rice' },
+      { id: 9,  name: 'Samosa',          canteen: 'MBA', price: 20, cat: 'Snacks', veg: true,  rating: 4.8, bestseller: true,  available: true, art: 'samosa' },
+      { id: 10, name: 'Lime Juice',      canteen: 'MC',  price: 30, cat: 'Drinks', veg: true,  rating: 4.6, bestseller: false, available: true, art: 'juice' },
+      { id: 11, name: 'Paneer Roll',     canteen: 'MC',  price: 75, cat: 'Rolls',  veg: true,  rating: 4.4, bestseller: false, available: true, art: 'roll-veg' },
+      { id: 12, name: 'Tea',             canteen: 'IT',  price: 15, cat: 'Drinks', veg: true,  rating: 4.7, bestseller: true,  available: true, art: 'tea' },
+    ];
+
+    // Fixed Pool of 5 Campus Riders
+    let riders = [
+      { id: 'Rider 01', busy: false, activeOrderId: null },
+      { id: 'Rider 02', busy: false, activeOrderId: null },
+      { id: 'Rider 03', busy: false, activeOrderId: null },
+      { id: 'Rider 04', busy: false, activeOrderId: null },
+      { id: 'Rider 05', busy: false, activeOrderId: null },
+    ];
+
+    // Order Status Pipeline
+    const ORDER_STEPS = [
+      'PLACED',
+      'ACCEPTED',
+      'PREPARING',
+      'READY',
+      'ASSIGNED',
+      'PICKED UP',
+      'OUT FOR DELIVERY',
+      'DELIVERED',
+    ];
+
+    // Application Runtime State
+    let state = {
+      activeRole: 'student',
+      selectedGate: 'Amritam Gate',
+      selectedSlot: 'Instant Delivery (12–15 mins)',
+      categoryFilter: 'All',
+      canteenFilter: 'All',
+      pureVegOnly: false,
+      under50Only: false,
+      cart: [],
+      orders: [],
+      nextOrderId: 2401,
+      pendingConflictItemId: null,
+    };
+
+    /* -----------------------------------------------------------
+       2. CUSTOM HIGH-CRAFT SVG ILLUSTRATIONS (Zero Broken Links)
+    ------------------------------------------------------------ */
+    function getFoodSvg(artType, size = 'card') {
+      const cls = size === 'circle' ? 'w-14 h-14' : 'w-16 h-16';
+      const svgs = {
+        'all': `<svg class="${cls}" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="24" fill="#FFF3EC"/><path d="M16 36h32c0 8.8-7.2 14-16 14s-16-5.2-16-14z" fill="#FF5200"/><path d="M14 33h36a2 2 0 010 4H14a2 2 0 010-4z" fill="#FC8019"/><path d="M22 28c0-5.5 4.5-10 10-10s10 4.5 10 10" stroke="#3D4152" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="15" r="2.5" fill="#FF5200"/></svg>`,
+        'roll-nonveg': `<svg class="${cls}" viewBox="0 0 64 64" fill="none"><rect x="10" y="22" width="44" height="22" rx="11" transform="rotate(-18 32 33)" fill="#FDBA74" stroke="#C2410C" stroke-width="2"/><ellipse cx="19" cy="36" rx="5" ry="9" transform="rotate(-18 19 36)" fill="#FFF7ED" stroke="#C2410C" stroke-width="2"/><circle cx="18" cy="34" r="2.5" fill="#E43B4F"/><circle cx="21" cy="38" r="2" fill="#1BA672"/><path d="M26 28l18-6" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 4"/><rect x="33" y="19" width="16" height="20" rx="3" transform="rotate(-18 41 29)" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/></svg>`,
+        'roll-veg': `<svg class="${cls}" viewBox="0 0 64 64" fill="none"><rect x="10" y="22" width="44" height="22" rx="11" transform="rotate(-18 32 33)" fill="#FDE68A" stroke="#B45309" stroke-width="2"/><ellipse cx="19" cy="36" rx="5" ry="9" transform="rotate(-18 19 36)" fill="#FFFBEB" stroke="#B45309" stroke-width="2"/><rect x="16" y="33" width="5" height="5" rx="1" fill="#F59E0B"/><circle cx="21" cy="39" r="2" fill="#0F8A65"/><rect x="33" y="19" width="16" height="20" rx="3" transform="rotate(-18 41 29)" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1.5"/></svg>`,
+        'dosa': `<svg class="${cls}" viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="40" rx="26" ry="12" fill="#E5E7EB"/><path d="M12 38L50 20L54 34L14 42Z" fill="#F59E0B" stroke="#B45309" stroke-width="2" stroke-linejoin="round"/><ellipse cx="52" cy="27" rx="3.5" ry="7" transform="rotate(-14 52 27)" fill="#FEF3C7" stroke="#B45309" stroke-width="2"/><circle cx="24" cy="45" r="5" fill="#EF4444"/><circle cx="38" cy="46" r="5" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/></svg>`,
+        'rice': `<svg class="${cls}" viewBox="0 0 64 64" fill="none"><path d="M12 34h40c0 11-8.5 18-20 18s-20-7-20-18z" fill="#3D4152"/><path d="M14 34c2-10 9-16 18-16s16 6 18 16H14z" fill="#FFFBEB" stroke="#E5E7EB" stroke-width="1.5"/><circle cx="25" cy="28" r="2.2" fill="#1BA672"/><circle cx="34" cy="24" r="2.2" fill="#FF5200"/><circle cx="40" cy="30" r="2" fill="#F59E0B"/><circle cx="29" cy="31" r="1.8" fill="#EF4444"/><path d="M40 14l10-4M42 18l10-3" stroke="#92400E" stroke-width="2" stroke-linecap="round"/></svg>`,
+        'sandwich': `<svg class="${cls}" viewBox="0 0 64 64" fill="none"><path d="M12 38L32 16L52 38H12Z" fill="#FDE68A" stroke="#D97706" stroke-width="2.5" stroke-linejoin="round"/><path d="M12 38H52V44C52 46 50 47 48 47H16C14 47 12 46 12 44V38Z" fill="#FFFBEB" stroke="#D97706" stroke-width="2"/><path d="M15 41H49" stroke="#1BA672" stroke-width="3" stroke-linecap="round"/><path d="M18 44H46" stroke="#EF4444" stroke-width="2" stroke-linecap="round"/></svg>`,
+        'samosa': `<svg class="${cls}" viewBox="0 0 64 64" fill="none"><path d="M14 44L30 16L48 44H14Z" fill="#F59E0B" stroke="#B45309" stroke-width="2.2" stroke-linejoin="round"/><path d="M26 46L42 22L54 46H26Z" fill="#FBBF24" stroke="#B45309" stroke-width="2.2" stroke-linejoin="round"/><circle cx="26" cy="36" r="1.5" fill="#92400E"/><circle cx="42" cy="38" r="1.5" fill="#92400E"/></svg>`,
+        'juice': `<svg class="${cls}" viewBox="0 0 64 64" fill="none"><path d="M21 20h22l-3 32H24l-3-32z" fill="#FEF08A" stroke="#CA8A04" stroke-width="2" stroke-linejoin="round"/><path d="M22.5 28h19l-2 22h-15l-2-22z" fill="#A3E635" fill-opacity="0.65"/><circle cx="41" cy="20" r="7" fill="#84CC16" stroke="#4D7C0F" stroke-width="1.8"/><path d="M30 20L36 8" stroke="#FF5200" stroke-width="2.8" stroke-linecap="round"/></svg>`,
+        'tea': `<svg class="${cls}" viewBox="0 0 64 64" fill="none"><path d="M16 26h26v14c0 7.2-5.8 13-13 13s-13-5.8-13-13V26z" fill="#FFFFFF" stroke="#3D4152" stroke-width="2.2"/><path d="M42 29h4a5 5 0 010 10h-4" stroke="#3D4152" stroke-width="2.2"/><ellipse cx="29" cy="26" rx="13" ry="3.5" fill="#D97706"/><path d="M24 19c0-2 2-3 2-5M31 19c0-2 2-3 2-5" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/></svg>`,
+        'custom': `<svg class="${cls}" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="34" r="19" fill="#FFF3EC" stroke="#FF5200" stroke-width="2.2"/><circle cx="32" cy="34" r="12" fill="#FFEDD5"/><path d="M26 34h12M32 28v12" stroke="#FF5200" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+      };
+      return svgs[artType] || svgs['custom'];
+    }
+
+    // FSSAI Authentic Veg / Non-Veg Square Icon
+    function getDietaryIcon(isVeg) {
+      if (isVeg) {
+        return `<span title="Pure Veg" class="inline-flex items-center justify-center w-4 h-4 border-[1.5px] border-swiggy-veg rounded-[4px] shrink-0">
+          <span class="w-2 h-2 rounded-full bg-swiggy-veg"></span>
+        </span>`;
+      }
+      return `<span title="Non-Veg" class="inline-flex items-center justify-center w-4 h-4 border-[1.5px] border-swiggy-nonveg rounded-[4px] shrink-0">
+        <span class="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[7px] border-b-swiggy-nonveg"></span>
+      </span>`;
+    }
+
+    /* -----------------------------------------------------------
+       3. TOAST NOTIFICATIONS
+    ------------------------------------------------------------ */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const accent =
+        type === 'success' ? 'border-l-4 border-swiggy-green' :
+        type === 'warning' ? 'border-l-4 border-swiggy-orange' :
+        'border-l-4 border-swiggy-ink';
+
+      toast.className = `pointer-events-auto bg-swiggy-ink text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-xl shadow-xl ${accent} flex items-center gap-2.5 transform translate-y-2 opacity-0 transition-all duration-200 max-w-xs sm:max-w-sm`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 220);
+      }, 2600);
+    }
+
+    /* -----------------------------------------------------------
+       4. NAVIGATION, LOCATION DROPDOWN & ROLE SWITCHING
+    ------------------------------------------------------------ */
+    function renderGateOptions() {
+      const list = document.getElementById('gateOptionsList');
+      list.innerHTML = HOSTEL_GATES.map((gate) => {
+        const active = gate === state.selectedGate;
+        return `
+          <button onclick="selectDefaultGate('${gate}')" class="w-full text-left px-3 py-2.5 rounded-xl flex items-center justify-between text-sm transition-colors ${active ? 'bg-swiggy-orangeTint text-swiggy-orange font-bold' : 'text-swiggy-charcoal hover:bg-swiggy-surface font-medium'}">
+            <span class="flex items-center gap-2">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              ${gate}
+            </span>
+            ${active ? '<span class="text-xs font-extrabold">✓</span>' : ''}
+          </button>
+        `;
+      }).join('');
+      document.getElementById('navSelectedGate').textContent = `• ${state.selectedGate}`;
+    }
+
+    function toggleLocationDropdown() {
+      const dd = document.getElementById('locationDropdown');
+      const chev = document.getElementById('locChevron');
+      dd.classList.toggle('hidden');
+      chev.classList.toggle('rotate-180');
+    }
+
+    function selectDefaultGate(gate) {
+      state.selectedGate = gate;
+      renderGateOptions();
+      toggleLocationDropdown();
+      renderCartDrawer();
+      showToast(`Default delivery gate set to ${gate}`, 'success');
+    }
+
+    // Close location dropdown on outside click
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('locationDropdownWrapper');
+      const dd = document.getElementById('locationDropdown');
+      if (wrapper && !wrapper.contains(e.target) && !dd.classList.contains('hidden')) {
+        dd.classList.add('hidden');
+        document.getElementById('locChevron').classList.remove('rotate-180');
+      }
+    });
+
+    function switchRole(role) {
+      state.activeRole = role;
+      document.querySelectorAll('.role-view').forEach((el) => el.classList.add('hidden'));
+      document.getElementById(`view-${role}`).classList.remove('hidden');
+
+      document.querySelectorAll('.role-tab').forEach((btn) => {
+        const isActive = btn.dataset.role === role;
+        btn.className = isActive
+          ? 'role-tab px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-extrabold transition-all whitespace-nowrap bg-swiggy-orange text-white shadow-sm'
+          : 'role-tab px-3.5 py-1.5 rounded-full text-xs sm:text-[13px] font-bold transition-all whitespace-nowrap bg-white text-swiggy-charcoal border border-gray-200 hover:border-swiggy-orange hover:text-swiggy-orange';
+      });
+
+      // Refresh the active view
+      if (role === 'student') renderStudentView();
+      if (role === 'canteen') renderCanteenDashboard();
+      if (role === 'admin') renderAdminDashboard();
+      if (role === 'rider') renderRiderDashboard();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateNavbarBadges() {
+      const totalCartQty = state.cart.reduce((sum, i) => sum + i.qty, 0);
+      document.getElementById('navCartCount').textContent = totalCartQty;
+
+      const activeOrders = state.orders.filter(
+        (o) => o.status !== 'DELIVERED' && o.status !== 'CANCELLED'
+      ).length;
+      const badge = document.getElementById('navActiveOrderBadge');
+      if (activeOrders > 0) {
+        badge.textContent = activeOrders;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    /* -----------------------------------------------------------
+       5. ROLE 1: STUDENT STOREFRONT RENDERING
+    ------------------------------------------------------------ */
+    function renderStudentView() {
+      renderMindCategories();
+      renderTopCanteens();
+      renderStudentFilterPills();
+      renderStudentMenu();
+    }
+
+    function renderMindCategories() {
+      const categories = [
+        { id: 'All', label: 'All Items', art: 'all' },
+        { id: 'Rolls', label: 'Rolls', art: 'roll-nonveg' },
+        { id: 'Meals', label: 'Meals & Dosa', art: 'dosa' },
+        { id: 'Snacks', label: 'Snacks', art: 'samosa' },
+        { id: 'Drinks', label: 'Beverages', art: 'juice' },
+      ];
+
+      document.getElementById('mindCategoryRow').innerHTML = categories.map((cat) => {
+        const active = state.categoryFilter === cat.id;
+        return `
+          <button onclick="setCategoryFilter('${cat.id}')" class="group flex flex-col items-center gap-2 shrink-0 focus:outline-none">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center transition-all duration-200 ${active ? 'bg-swiggy-orangeTint ring-2 ring-swiggy-orange scale-105 shadow-md' : 'bg-swiggy-surface group-hover:bg-orange-50 group-hover:scale-105'}">
+              ${getFoodSvg(cat.art, 'circle')}
+            </div>
+            <span class="text-xs sm:text-sm font-bold ${active ? 'text-swiggy-orange' : 'text-swiggy-charcoal group-hover:text-swiggy-ink'}">
+              ${cat.label}
+            </span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function setCategoryFilter(cat) {
+      state.categoryFilter = cat;
+      renderMindCategories();
+      renderStudentMenu();
+    }
+
+    function renderTopCanteens() {
+      const resetBtn = document.getElementById('resetCanteenFilterBtn');
+      if (state.canteenFilter !== 'All') {
+        resetBtn.classList.remove('hidden');
+      } else {
+        resetBtn.classList.add('hidden');
+      }
+
+      document.getElementById('topCanteensGrid').innerHTML = CANTEENS.map((c) => {
+        const isSelected = state.canteenFilter === c.id;
+        const liveCount = menuItems.filter((i) => i.canteen === c.id && i.available).length;
+        return `
+          <div onclick="setCanteenFilter('${c.id}')" class="cursor-pointer group rounded-2xl overflow-hidden bg-white border transition-all duration-200 hover:scale-[0.98] ${isSelected ? 'border-swiggy-orange ring-2 ring-swiggy-orange shadow-cardHover' : 'border-gray-100 shadow-card hover:shadow-cardHover'}">
+            <!-- Gradient Banner Header -->
+            <div class="relative h-36 bg-gradient-to-br ${c.gradient} p-4 flex flex-col justify-between overflow-hidden">
+              <div class="flex items-center justify-between relative z-10">
+                <span class="text-[11px] font-bold bg-black/30 backdrop-blur-sm text-white px-2.5 py-1 rounded-full">
+                  ${liveCount} items live
+                </span>
+                ${isSelected ? '<span class="text-[11px] font-extrabold bg-white text-swiggy-orange px-2.5 py-1 rounded-full shadow-sm">FILTERED ✓</span>' : ''}
+              </div>
+              <div class="relative z-10">
+                <div class="text-lg font-extrabold tracking-tight text-white drop-shadow-sm">
+                  ${c.offer}
+                </div>
+              </div>
+              <!-- Subtle Graphic Watermark -->
+              <div class="absolute -right-4 -top-4 text-white/10 font-extrabold text-7xl select-none pointer-events-none">${c.id}</div>
+            </div>
+
+            <!-- Canteen Details -->
+            <div class="p-4 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <h3 class="text-base font-extrabold text-swiggy-ink group-hover:text-swiggy-orange transition-colors">${c.name}</h3>
+              </div>
+              <div class="flex items-center gap-1.5 text-sm font-bold text-swiggy-ink">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-swiggy-green text-white text-[11px]">★</span>
+                <span>${c.rating}</span>
+                <span class="text-swiggy-slate">•</span>
+                <span>${c.time}</span>
+              </div>
+              <p class="text-xs font-medium text-swiggy-slate truncate">${c.cuisines}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setCanteenFilter(canteenId) {
+      state.canteenFilter = state.canteenFilter === canteenId && canteenId !== 'All' ? 'All' : canteenId;
+      renderTopCanteens();
+      renderStudentFilterPills();
+      renderStudentMenu();
+      document.getElementById('unifiedMenuSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function renderStudentFilterPills() {
+      const pills = [
+        { label: 'All Canteens', active: state.canteenFilter === 'All', action: `setCanteenFilter('All')` },
+        { label: 'MBA', active: state.canteenFilter === 'MBA', action: `setCanteenFilter('MBA')` },
+        { label: 'IT', active: state.canteenFilter === 'IT', action: `setCanteenFilter('IT')` },
+        { label: 'MC', active: state.canteenFilter === 'MC', action: `setCanteenFilter('MC')` },
+        { label: 'Pure Veg', active: state.pureVegOnly, action: `togglePureVeg()` },
+        { label: 'Under ₹50', active: state.under50Only, action: `toggleUnder50()` },
+      ];
+
+      document.getElementById('studentFilterPills').innerHTML = pills.map((p) => `
+        <button onclick="${p.action}" class="px-4 py-2 rounded-full text-xs font-bold border transition-all whitespace-nowrap ${p.active ? 'bg-swiggy-ink text-white border-swiggy-ink shadow-sm' : 'bg-white text-swiggy-charcoal border-gray-200 hover:border-gray-400'}">
+          ${p.label}${p.active && (p.label === 'Pure Veg' || p.label === 'Under ₹50') ? ' ✕' : ''}
+        </button>
+      `).join('');
+    }
+
+    function togglePureVeg() {
+      state.pureVegOnly = !state.pureVegOnly;
+      renderStudentFilterPills();
+      renderStudentMenu();
+    }
+
+    function toggleUnder50() {
+      state.under50Only = !state.under50Only;
+      renderStudentFilterPills();
+      renderStudentMenu();
+    }
+
+    function renderStudentMenu() {
+      const query = (document.getElementById('studentSearchInput')?.value || '').trim().toLowerCase();
+
+      const filtered = menuItems.filter((item) => {
+        if (!item.available) return false;
+        if (state.categoryFilter !== 'All' && item.cat !== state.categoryFilter) return false;
+        if (state.canteenFilter !== 'All' && item.canteen !== state.canteenFilter) return false;
+        if (state.pureVegOnly && !item.veg) return false;
+        if (state.under50Only && item.price > 50) return false;
+        if (query && !`${item.name} ${item.canteen} ${item.cat}`.toLowerCase().includes(query)) return false;
+        return true;
+      });
+
+      const grid = document.getElementById('studentMenuGrid');
+
+      if (!filtered.length) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-swiggy-surface rounded-2xl p-10 text-center space-y-2">
+            <div class="text-base font-extrabold text-swiggy-ink">No matching campus dishes found</div>
+            <p class="text-xs text-swiggy-slate">Try clearing your search or filters to see all available canteen items.</p>
+            <button onclick="resetAllFilters()" class="mt-2 inline-block text-xs font-extrabold text-swiggy-orange hover:underline">Reset Filters</button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map((item) => {
+        const inCart = state.cart.find((c) => c.id === item.id);
+        const qty = inCart ? inCart.qty : 0;
+
+        return `
+          <article class="bg-white border border-gray-100 rounded-2xl p-4 shadow-card hover:shadow-cardHover transition-all duration-200 flex items-center justify-between gap-4">
+            <!-- Dish Info -->
+            <div class="min-w-0 flex-1 space-y-1.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                ${getDietaryIcon(item.veg)}
+                ${item.bestseller ? `<span class="text-[11px] font-extrabold text-swiggy-orange flex items-center gap-0.5">★ Bestseller</span>` : ''}
+                <span class="text-[10px] font-extrabold uppercase tracking-wide bg-swiggy-surface text-swiggy-charcoal px-2 py-0.5 rounded-md">${item.canteen} Canteen</span>
+              </div>
+
+              <h3 class="text-[16px] font-extrabold text-swiggy-ink truncate">${item.name}</h3>
+
+              <div class="flex items-center gap-2 text-sm">
+                <span class="font-extrabold text-swiggy-ink">₹${item.price}</span>
+                <span class="text-xs font-bold text-swiggy-green flex items-center gap-0.5">
+                  ★ ${item.rating.toFixed(1)}
+                </span>
+              </div>
+
+              <div class="text-[11px] font-medium text-swiggy-slate">${item.cat} • Freshly prepared at ${item.canteen}</div>
+            </div>
+
+            <!-- Right Artwork + Swiggy Floating ADD / Stepper Button -->
+            <div class="relative shrink-0 w-28 flex flex-col items-center">
+              <div class="w-28 h-24 rounded-2xl bg-swiggy-surface/80 flex items-center justify-center border border-gray-100">
+                ${getFoodSvg(item.art, 'card')}
+              </div>
+
+              <!-- Authentic Swiggy ADD Button / Quantity Stepper -->
+              <div class="-mt-4 z-10">
+                ${qty === 0 ? `
+                  <button onclick="attemptAddToCart(${item.id})" class="w-24 h-9 bg-white hover:bg-gray-50 text-swiggy-green font-extrabold text-sm rounded-lg border border-gray-200 shadow-addBtn transition-transform active:scale-95">
+                    ADD
+                  </button>
+                ` : `
+                  <div class="w-24 h-9 bg-white text-swiggy-green font-extrabold text-sm rounded-lg border border-gray-200 shadow-addBtn flex items-center justify-between px-2">
+                    <button onclick="updateCartQty(${item.id}, -1)" class="w-6 h-full flex items-center justify-center text-lg hover:bg-emerald-50 rounded">−</button>
+                    <span class="text-sm font-extrabold text-swiggy-green">${qty}</span>
+                    <button onclick="updateCartQty(${item.id}, 1)" class="w-6 h-full flex items-center justify-center text-lg hover:bg-emerald-50 rounded">+</button>
+                  </div>
+                `}
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function resetAllFilters() {
+      state.categoryFilter = 'All';
+      state.canteenFilter = 'All';
+      state.pureVegOnly = false;
+      state.under50Only = false;
+      const searchEl = document.getElementById('studentSearchInput');
+      if (searchEl) searchEl.value = '';
+      renderStudentView();
+    }
+
+    /* -----------------------------------------------------------
+       6. CART LOGIC & SINGLE-CANTEEN CONFLICT RULE
+    ------------------------------------------------------------ */
+    function attemptAddToCart(itemId) {
+      const item = menuItems.find((m) => m.id === itemId);
+      if (!item || !item.available) return;
+
+      // Single-canteen cart enforcement
+      if (state.cart.length > 0 && state.cart[0].canteen !== item.canteen) {
+        state.pendingConflictItemId = itemId;
+        document.getElementById('cartConflictMessage').innerHTML = `
+          Your cart contains items from <strong>${state.cart[0].canteen} Canteen</strong>. Would you like to reset your cart and add <strong>${item.name}</strong> from <strong>${item.canteen} Canteen</strong>?
+        `;
+        const modal = document.getElementById('cartConflictModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        return;
+      }
+
+      addToCartDirect(item);
+    }
+
+    function closeConflictModal() {
+      state.pendingConflictItemId = null;
+      const modal = document.getElementById('cartConflictModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function confirmResetCartAndAdd() {
+      const item = menuItems.find((m) => m.id === state.pendingConflictItemId);
+      state.cart = [];
+      closeConflictModal();
+      if (item) {
+        addToCartDirect(item);
+      }
+    }
+
+    function addToCartDirect(item) {
+      const existing = state.cart.find((c) => c.id === item.id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        state.cart.push({ ...item, qty: 1 });
+      }
+      updateNavbarBadges();
+      renderStudentMenu();
+      renderCartDrawer();
+      showToast(`Added ${item.name} (${item.canteen}) to cart`, 'success');
+    }
+
+    function updateCartQty(itemId, delta) {
+      const idx = state.cart.findIndex((c) => c.id === itemId);
+      if (idx === -1) return;
+      state.cart[idx].qty += delta;
+      if (state.cart[idx].qty <= 0) {
+        state.cart.splice(idx, 1);
+      }
+      updateNavbarBadges();
+      renderStudentMenu();
+      renderCartDrawer();
+    }
+
+    /* -----------------------------------------------------------
+       7. SLIDE-OVER CART DRAWER & CHECKOUT
+    ------------------------------------------------------------ */
+    function openCartDrawer() {
+      renderCartDrawer();
+      document.getElementById('cartDrawerBackdrop').classList.remove('hidden');
+      document.getElementById('cartDrawer').classList.remove('translate-x-full');
+    }
+
+    function closeCartDrawer() {
+      document.getElementById('cartDrawerBackdrop').classList.add('hidden');
+      document.getElementById('cartDrawer').classList.add('translate-x-full');
+    }
+
+    function renderCartDrawer() {
+      const body = document.getElementById('cartDrawerBody');
+      const footer = document.getElementById('cartDrawerFooter');
+      const subtitle = document.getElementById('cartCanteenSubtitle');
+
+      if (state.cart.length === 0) {
+        subtitle.textContent = 'Your cart is empty';
+        footer.classList.add('hidden');
+        body.innerHTML = `
+          <div class="bg-white rounded-2xl p-8 text-center space-y-3 mt-6 border border-gray-100">
+            <div class="w-16 h-16 mx-auto rounded-full bg-swiggy-orangeTint flex items-center justify-center text-swiggy-orange">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            </div>
+            <h4 class="text-base font-extrabold text-swiggy-ink">Good food is always cooking</h4>
+            <p class="text-xs text-swiggy-slate">Add rolls, dosa, snacks or drinks from MBA, IT or MC Canteen to get started.</p>
+            <button onclick="closeCartDrawer()" class="mt-2 bg-swiggy-orange text-white font-bold text-xs px-5 py-2.5 rounded-xl">
+              Browse Campus Menu
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const canteenName = `${state.cart[0].canteen} Canteen`;
+      subtitle.textContent = `${canteenName} • Amrita Ettimadai`;
+      footer.classList.remove('hidden');
+
+      const itemTotal = state.cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const deliveryFee = 25;
+      const platformFee = 2;
+      const grandTotal = itemTotal + deliveryFee + platformFee;
+
+      document.getElementById('cartPayAmountBtn').textContent = `TO PAY ₹${grandTotal}`;
+
+      body.innerHTML = `
+        <!-- Canteen & Itemized List -->
+        <div class="bg-white rounded-2xl p-4 border border-gray-100 space-y-3">
+          <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+            <div>
+              <div class="text-sm font-extrabold text-swiggy-ink">${canteenName}</div>
+              <div class="text-[11px] text-swiggy-slate">Amrita Ettimadai Campus</div>
+            </div>
+            <span class="text-[10px] font-extrabold bg-emerald-50 text-swiggy-green px-2 py-1 rounded-md">LIVE KITCHEN</span>
+          </div>
+
+          <div class="space-y-3">
+            ${state.cart.map((item) => `
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 min-w-0">
+                  ${getDietaryIcon(item.veg)}
+                  <span class="text-sm font-bold text-swiggy-ink truncate">${item.name}</span>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <div class="w-20 h-7 bg-white border border-gray-200 rounded-md flex items-center justify-between px-1.5 text-swiggy-green font-extrabold text-xs">
+                    <button onclick="updateCartQty(${item.id}, -1)" class="px-1">−</button>
+                    <span>${item.qty}</span>
+                    <button onclick="updateCartQty(${item.id}, 1)" class="px-1">+</button>
+                  </div>
+                  <span class="text-sm font-bold text-swiggy-ink w-12 text-right">₹${item.price * item.qty}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Delivery Slot Selector -->
+        <div class="bg-white rounded-2xl p-4 border border-gray-100 space-y-3">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-swiggy-charcoal">Choose Delivery Slot</div>
+          <div class="space-y-2">
+            ${DELIVERY_SLOTS.map((slot) => {
+              const checked = state.selectedSlot === slot.label;
+              return `
+                <label onclick="selectDeliverySlot('${slot.label}')" class="flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${checked ? 'border-swiggy-orange bg-swiggy-orangeTint/60' : 'border-gray-200 hover:bg-gray-50'}">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center ${checked ? 'border-swiggy-orange' : 'border-gray-300'}">
+                      ${checked ? '<span class="w-2 h-2 rounded-full bg-swiggy-orange"></span>' : ''}
+                    </span>
+                    <span class="text-xs font-bold text-swiggy-ink">${slot.label}</span>
+                  </div>
+                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md ${slot.id === 'instant' ? 'bg-emerald-50 text-swiggy-green' : 'bg-gray-100 text-swiggy-slate'}">${slot.tag}</span>
+                </label>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Hostel Gate Selector -->
+        <div class="bg-white rounded-2xl p-4 border border-gray-100 space-y-2">
+          <label for="checkoutGateSelect" class="block text-xs font-extrabold uppercase tracking-wider text-swiggy-charcoal">Drop Location (Hostel Gate)</label>
+          <select id="checkoutGateSelect" onchange="state.selectedGate = this.value; renderGateOptions();" class="w-full bg-swiggy-surface border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-swiggy-ink outline-none focus:border-swiggy-orange">
+            ${HOSTEL_GATES.map((g) => `<option value="${g}" ${g === state.selectedGate ? 'selected' : ''}>${g}</option>`).join('')}
+          </select>
+        </div>
+
+        <!-- Swiggy-Style Bill Details -->
+        <div class="bg-white rounded-2xl p-4 border border-gray-100 space-y-2.5 text-xs">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-swiggy-charcoal pb-1">Bill Details</div>
+          <div class="flex justify-between text-swiggy-slate font-medium">
+            <span>Item Total</span>
+            <span class="font-bold text-swiggy-ink">₹${itemTotal}</span>
+          </div>
+          <div class="flex justify-between text-swiggy-slate font-medium">
+            <span>Campus Delivery Fee (Shared Fleet)</span>
+            <span class="font-bold text-swiggy-ink">₹${deliveryFee}</span>
+          </div>
+          <div class="flex justify-between text-swiggy-slate font-medium">
+            <span>Platform Fee</span>
+            <span class="font-bold text-swiggy-ink">₹${platformFee}</span>
+          </div>
+          <hr class="border-gray-200 my-2" />
+          <div class="flex justify-between text-sm font-extrabold text-swiggy-ink">
+            <span>TO PAY</span>
+            <span>₹${grandTotal}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectDeliverySlot(label) {
+      state.selectedSlot = label;
+      renderCartDrawer();
+    }
+
+    function placeDemoOrder() {
+      if (state.cart.length === 0) return;
+      const itemTotal = state.cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const total = itemTotal + 25 + 2;
+
+      const newOrder = {
+        id: state.nextOrderId++,
+        canteen: state.cart[0].canteen,
+        items: state.cart.map((i) => ({ ...i })),
+        itemTotal,
+        total,
+        gate: state.selectedGate,
+        slot: state.selectedSlot,
+        status: 'PLACED',
+        rider: null,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      state.orders.unshift(newOrder);
+      state.cart = [];
+
+      closeCartDrawer();
+      updateNavbarBadges();
+      renderStudentMenu();
+      renderCanteenDashboard();
+      renderAdminDashboard();
+      renderRiderDashboard();
+
+      showToast(`Order #${newOrder.id} placed with ${newOrder.canteen} Canteen!`, 'success');
+      openTrackerModal();
+    }
+
+    /* -----------------------------------------------------------
+       8. LIVE ORDER TRACKER MODAL
+    ------------------------------------------------------------ */
+    function openTrackerModal() {
+      renderTrackerModal();
+      const modal = document.getElementById('trackerModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeTrackerModal() {
+      const modal = document.getElementById('trackerModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function renderTrackerModal() {
+      const body = document.getElementById('trackerModalBody');
+      if (state.orders.length === 0) {
+        body.innerHTML = `
+          <div class="text-center py-10 space-y-3">
+            <div class="text-base font-extrabold text-swiggy-ink">No campus orders placed yet</div>
+            <p class="text-xs text-swiggy-slate max-w-sm mx-auto">Add items from the Student Storefront and place a demo order to watch the live multi-role workflow in action.</p>
+            <button onclick="closeTrackerModal(); switchRole('student');" class="bg-swiggy-orange text-white font-bold text-xs px-5 py-2.5 rounded-xl">
+              Order Food Now
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      body.innerHTML = state.orders.map((order) => {
+        const currentIdx = ORDER_STEPS.indexOf(order.status);
+        const isCancelled = order.status === 'CANCELLED';
+
+        return `
+          <div class="border border-gray-200 rounded-2xl p-4 sm:p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-extrabold text-swiggy-ink">Order #${order.id}</span>
+                  <span class="text-[11px] font-bold bg-swiggy-surface text-swiggy-charcoal px-2 py-0.5 rounded-md">${order.canteen} Canteen</span>
+                </div>
+                <div class="text-xs text-swiggy-slate mt-0.5">
+                  ${order.gate} • ${order.slot} • Placed at ${order.time}
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="inline-block text-[11px] font-extrabold px-2.5 py-1 rounded-full ${isCancelled ? 'bg-red-50 text-swiggy-nonveg' : order.status === 'DELIVERED' ? 'bg-emerald-50 text-swiggy-green' : 'bg-swiggy-orangeTint text-swiggy-orange'}">
+                  ${order.status}
+                </span>
+                <div class="text-xs font-extrabold text-swiggy-ink mt-1">₹${order.total}</div>
+              </div>
+            </div>
+
+            <!-- Items Summary -->
+            <div class="text-xs font-medium text-swiggy-charcoal bg-swiggy-surface/60 rounded-xl px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2">
+              <span>${order.items.map((i) => `${i.name} × ${i.qty}`).join(', ')}</span>
+              <span class="font-bold text-swiggy-ink">${order.rider ? `🛵 ${order.rider}` : 'Rider: Awaiting assignment'}</span>
+            </div>
+
+            <!-- Progress Stepper -->
+            ${isCancelled ? `
+              <div class="text-xs font-bold text-swiggy-nonveg bg-red-50 rounded-xl p-3">
+                This order was rejected by ${order.canteen} Canteen. No demo charge was applied.
+              </div>
+            ` : `
+              <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 pt-1">
+                ${ORDER_STEPS.map((step, idx) => {
+                  const done = idx <= currentIdx;
+                  const isCurrent = idx === currentIdx;
+                  return `
+                    <div class="flex flex-col items-center text-center gap-1.5">
+                      <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold transition-all ${done ? 'bg-swiggy-green text-white' : 'bg-gray-100 text-gray-400'} ${isCurrent ? 'ring-4 ring-emerald-100 scale-110' : ''}">
+                        ${done ? '✓' : idx + 1}
+                      </div>
+                      <span class="text-[9px] leading-tight font-bold ${done ? 'text-swiggy-ink' : 'text-gray-400'}">${step}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* -----------------------------------------------------------
+       9. ROLE 2: CANTEEN PARTNER DASHBOARD
+    ------------------------------------------------------------ */
+    function renderCanteenDashboard() {
+      const canteenId = document.getElementById('canteenPartnerSelect').value;
+      const canteenMenu = menuItems.filter((m) => m.canteen === canteenId);
+      const inStock = canteenMenu.filter((m) => m.available).length;
+      const canteenOrders = state.orders.filter((o) => o.canteen === canteenId);
+      const activeOrders = canteenOrders.filter((o) => !['DELIVERED', 'CANCELLED'].includes(o.status)).length;
+      const revenue = canteenOrders
+        .filter((o) => o.status !== 'CANCELLED')
+        .reduce((sum, o) => sum + o.itemTotal, 0);
+
+      // KPI Cards
+      document.getElementById('canteenKpiGrid').innerHTML = `
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">Total Menu Items</div>
+          <div class="text-2xl font-extrabold text-swiggy-ink mt-1">${canteenMenu.length}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">In Stock</div>
+          <div class="text-2xl font-extrabold text-swiggy-green mt-1">${inStock}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">Active Orders</div>
+          <div class="text-2xl font-extrabold text-swiggy-orange mt-1">${activeOrders}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">Canteen Revenue</div>
+          <div class="text-2xl font-extrabold text-swiggy-ink mt-1">₹${revenue}</div>
+        </div>
+      `;
+
+      document.getElementById('canteenIncomingBadge').textContent = `${activeOrders} active`;
+
+      // Incoming Orders List
+      const ordersList = document.getElementById('canteenOrdersList');
+      if (canteenOrders.length === 0) {
+        ordersList.innerHTML = `
+          <div class="bg-swiggy-surface rounded-xl p-6 text-center text-xs text-swiggy-slate">
+            No orders yet for <strong>${canteenId} Canteen</strong>. Switch to Student view to place a demo order.
+          </div>
+        `;
+      } else {
+        ordersList.innerHTML = canteenOrders.map((o) => `
+          <div class="border border-gray-200 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-extrabold text-swiggy-ink">Order #${o.id} • ₹${o.itemTotal}</span>
+              <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full ${o.status === 'CANCELLED' ? 'bg-red-50 text-swiggy-nonveg' : o.status === 'DELIVERED' ? 'bg-emerald-50 text-swiggy-green' : 'bg-swiggy-orangeTint text-swiggy-orange'}">${o.status}</span>
+            </div>
+            <div class="text-xs font-semibold text-swiggy-charcoal">
+              ${o.items.map((i) => `${i.name} × ${i.qty}`).join(', ')}
+            </div>
+            <div class="text-[11px] text-swiggy-slate">
+              Drop: <strong>${o.gate}</strong> • Slot: ${o.slot}
+            </div>
+            <div class="flex flex-wrap gap-2 pt-1">
+              ${o.status === 'PLACED' ? `
+                <button onclick="updateOrderStatus(${o.id}, 'ACCEPTED')" class="bg-swiggy-green hover:bg-[#159363] text-white text-xs font-bold px-3.5 py-2 rounded-lg transition-colors">Accept Order</button>
+                <button onclick="updateOrderStatus(${o.id}, 'CANCELLED')" class="bg-red-50 hover:bg-red-100 text-swiggy-nonveg text-xs font-bold px-3.5 py-2 rounded-lg transition-colors">Reject</button>
+              ` : ''}
+              ${o.status === 'ACCEPTED' ? `
+                <button onclick="updateOrderStatus(${o.id}, 'PREPARING')" class="bg-swiggy-orange hover:bg-swiggy-orangeLight text-white text-xs font-bold px-3.5 py-2 rounded-lg transition-colors">Start Preparing</button>
+              ` : ''}
+              ${o.status === 'PREPARING' ? `
+                <button onclick="updateOrderStatus(${o.id}, 'READY')" class="bg-swiggy-ink hover:bg-swiggy-charcoal text-white text-xs font-bold px-3.5 py-2 rounded-lg transition-colors">Mark Ready for Pickup</button>
+              ` : ''}
+              ${o.status === 'READY' ? `
+                <span class="text-[11px] font-bold text-swiggy-green">✓ Ready! Awaiting Rider Assignment in Admin Ops</span>
+              ` : ''}
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Menu Table
+      document.getElementById('canteenMenuTableBody').innerHTML = canteenMenu.map((item) => `
+        <tr class="hover:bg-gray-50/70">
+          <td class="py-3 px-2 font-bold text-swiggy-ink">
+            <div class="flex items-center gap-2">
+              ${getDietaryIcon(item.veg)}
+              <span>${item.name}</span>
+            </div>
+          </td>
+          <td class="py-3 px-2 text-xs text-swiggy-slate font-semibold">${item.cat}</td>
+          <td class="py-3 px-2 font-extrabold text-swiggy-ink">₹${item.price}</td>
+          <td class="py-3 px-2 text-right">
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <span class="text-[11px] font-bold ${item.available ? 'text-swiggy-green' : 'text-swiggy-slate'}">
+                ${item.available ? 'Available' : 'Sold Out'}
+              </span>
+              <div class="relative inline-block w-10 align-middle select-none">
+                <input type="checkbox" ${item.available ? 'checked' : ''} onchange="toggleMenuItemStock(${item.id})" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer transition-all duration-200" />
+                <span class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer transition-colors"></span>
+              </div>
+            </label>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function handleAddMenuItem(e) {
+      e.preventDefault();
+      const canteen = document.getElementById('canteenPartnerSelect').value;
+      const name = document.getElementById('newDishName').value.trim();
+      const price = Number(document.getElementById('newDishPrice').value);
+      const cat = document.getElementById('newDishCategory').value;
+      const veg = document.getElementById('newDishVeg').value === 'true';
+
+      if (!name || price <= 0) return;
+
+      const artMap = { Rolls: veg ? 'roll-veg' : 'roll-nonveg', Meals: 'rice', Snacks: 'samosa', Drinks: 'juice' };
+      const nextId = Math.max(...menuItems.map((m) => m.id), 0) + 1;
+
+      menuItems.unshift({
+        id: nextId,
+        name,
+        canteen,
+        price,
+        cat,
+        veg,
+        rating: 4.5,
+        bestseller: false,
+        available: true,
+        art: artMap[cat] || 'custom',
+      });
+
+      e.target.reset();
+      renderCanteenDashboard();
+      renderStudentView();
+      showToast(`Added "${name}" to ${canteen} Canteen menu`, 'success');
+    }
+
+    function toggleMenuItemStock(itemId) {
+      const item = menuItems.find((m) => m.id === itemId);
+      if (!item) return;
+      item.available = !item.available;
+      renderCanteenDashboard();
+      renderStudentView();
+      showToast(`${item.name} marked as ${item.available ? 'Available' : 'Sold Out'}`, item.available ? 'success' : 'warning');
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+      const order = state.orders.find((o) => o.id === orderId);
+      if (!order) return;
+      order.status = newStatus;
+
+      updateNavbarBadges();
+      renderCanteenDashboard();
+      renderAdminDashboard();
+      renderRiderDashboard();
+      renderTrackerModal();
+      showToast(`Order #${orderId} updated → ${newStatus}`, 'success');
+    }
+
+    /* -----------------------------------------------------------
+       10. ROLE 3: ADMIN OPS DASHBOARD
+    ------------------------------------------------------------ */
+    function renderAdminDashboard() {
+      const totalOrders = state.orders.length;
+      const readyWaiting = state.orders.filter((o) => o.status === 'READY' && !o.rider).length;
+      const availableRiders = riders.filter((r) => !r.busy).length;
+      const completed = state.orders.filter((o) => o.status === 'DELIVERED').length;
+
+      document.getElementById('adminKpiGrid').innerHTML = `
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">Total Campus Orders</div>
+          <div class="text-2xl font-extrabold text-swiggy-ink mt-1">${totalOrders}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">Ready &amp; Awaiting Rider</div>
+          <div class="text-2xl font-extrabold text-swiggy-orange mt-1">${readyWaiting}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">Available Riders</div>
+          <div class="text-2xl font-extrabold text-swiggy-green mt-1">${availableRiders} / ${riders.length}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">Completed Deliveries</div>
+          <div class="text-2xl font-extrabold text-swiggy-ink mt-1">${completed}</div>
+        </div>
+      `;
+
+      // Fleet Status Strip
+      document.getElementById('adminFleetStrip').innerHTML = riders.map((r) => `
+        <div class="border rounded-xl p-3 flex items-center justify-between ${r.busy ? 'border-orange-200 bg-swiggy-orangeTint/40' : 'border-emerald-200 bg-emerald-50/40'}">
+          <div>
+            <div class="text-sm font-extrabold text-swiggy-ink">${r.id}</div>
+            <div class="text-[11px] font-medium text-swiggy-slate">${r.busy ? `Order #${r.activeOrderId}` : 'Ready for dispatch'}</div>
+          </div>
+          <span class="text-[10px] font-extrabold px-2 py-1 rounded-full ${r.busy ? 'bg-swiggy-orange text-white' : 'bg-swiggy-green text-white'}">
+            ${r.busy ? 'Busy' : 'Available'}
+          </span>
+        </div>
+      `).join('');
+
+      // Order Allocation Queue
+      const list = document.getElementById('adminOrderList');
+      if (state.orders.length === 0) {
+        list.innerHTML = `
+          <div class="bg-swiggy-surface rounded-xl p-8 text-center text-xs text-swiggy-slate">
+            No campus orders yet. Place an order in the <strong>Student</strong> tab and mark it <strong>READY</strong> in <strong>Canteen Partner</strong> to assign a rider.
+          </div>
+        `;
+        return;
+      }
+
+      const freeRiders = riders.filter((r) => !r.busy);
+
+      list.innerHTML = state.orders.map((o) => `
+        <div class="border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-sm font-extrabold text-swiggy-ink">Order #${o.id}</span>
+              <span class="text-[11px] font-bold bg-swiggy-surface text-swiggy-charcoal px-2 py-0.5 rounded-md">${o.canteen} Canteen</span>
+              <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${o.status === 'DELIVERED' ? 'bg-emerald-50 text-swiggy-green' : o.status === 'CANCELLED' ? 'bg-red-50 text-swiggy-nonveg' : 'bg-swiggy-orangeTint text-swiggy-orange'}">${o.status}</span>
+            </div>
+            <div class="text-xs font-medium text-swiggy-charcoal">${o.items.map((i) => `${i.name} × ${i.qty}`).join(', ')}</div>
+            <div class="text-[11px] text-swiggy-slate">Drop: <strong>${o.gate}</strong> • Slot: ${o.slot} • Rider: <strong>${o.rider || 'Unassigned'}</strong></div>
+          </div>
+
+          <div class="shrink-0">
+            ${o.status === 'READY' && !o.rider ? `
+              <div class="flex items-center gap-2">
+                <select id="adminAssignSelect-${o.id}" class="bg-swiggy-surface border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold text-swiggy-ink outline-none">
+                  ${freeRiders.length ? freeRiders.map((r) => `<option value="${r.id}">${r.id}</option>`).join('') : '<option value="">No free riders</option>'}
+                </select>
+                <button onclick="assignRiderToOrder(${o.id})" class="bg-swiggy-orange hover:bg-swiggy-orangeLight text-white text-xs font-extrabold px-4 py-2 rounded-lg transition-colors">
+                  Assign Rider
+                </button>
+              </div>
+            ` : `
+              <span class="text-xs font-semibold text-swiggy-slate">
+                ${o.status === 'PLACED' || o.status === 'ACCEPTED' || o.status === 'PREPARING' ? 'Waiting on canteen prep' : o.rider ? `Assigned to ${o.rider}` : '—'}
+              </span>
+            `}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function assignRiderToOrder(orderId) {
+      const select = document.getElementById(`adminAssignSelect-${orderId}`);
+      const riderId = select ? select.value : '';
+      const rider = riders.find((r) => r.id === riderId && !r.busy);
+      const order = state.orders.find((o) => o.id === orderId);
+
+      if (!rider || !order) {
+        showToast('No available rider selected', 'warning');
+        return;
+      }
+
+      rider.busy = true;
+      rider.activeOrderId = order.id;
+      order.rider = rider.id;
+      order.status = 'ASSIGNED';
+
+      renderAdminDashboard();
+      renderRiderDashboard();
+      renderCanteenDashboard();
+      renderTrackerModal();
+      showToast(`${rider.id} assigned to Order #${order.id}`, 'success');
+    }
+
+    /* -----------------------------------------------------------
+       11. ROLE 4: CAMPUS RIDER DASHBOARD
+    ------------------------------------------------------------ */
+    function renderRiderDashboard() {
+      const selectedRiderId = document.getElementById('riderPersonaSelect').value;
+      const myOrders = state.orders.filter((o) => o.rider === selectedRiderId);
+      const activeCount = myOrders.filter((o) => !['DELIVERED', 'CANCELLED'].includes(o.status)).length;
+      const doneCount = myOrders.filter((o) => o.status === 'DELIVERED').length;
+
+      document.getElementById('riderKpiGrid').innerHTML = `
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">Assigned Total</div>
+          <div class="text-2xl font-extrabold text-swiggy-ink mt-1">${myOrders.length}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">Active Now</div>
+          <div class="text-2xl font-extrabold text-swiggy-orange mt-1">${activeCount}</div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-card">
+          <div class="text-xs font-bold text-swiggy-slate">Completed</div>
+          <div class="text-2xl font-extrabold text-swiggy-green mt-1">${doneCount}</div>
+        </div>
+      `;
+
+      const list = document.getElementById('riderOrdersList');
+      if (myOrders.length === 0) {
+        list.innerHTML = `
+          <div class="col-span-full bg-white border border-gray-200 rounded-2xl p-8 text-center text-xs text-swiggy-slate">
+            No deliveries assigned to <strong>${selectedRiderId}</strong> yet. Assign a READY order from <strong>Admin Ops</strong>.
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = myOrders.map((o) => `
+        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-card space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-base font-extrabold text-swiggy-ink">Order #${o.id}</span>
+            <span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full ${o.status === 'DELIVERED' ? 'bg-emerald-50 text-swiggy-green' : 'bg-swiggy-orangeTint text-swiggy-orange'}">${o.status}</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 bg-swiggy-surface/70 rounded-xl p-3 text-xs">
+            <div>
+              <div class="text-[10px] font-bold uppercase text-swiggy-slate">Pickup From</div>
+              <div class="font-extrabold text-swiggy-ink mt-0.5">${o.canteen} Canteen</div>
+            </div>
+            <div>
+              <div class="text-[10px] font-bold uppercase text-swiggy-slate">Drop At</div>
+              <div class="font-extrabold text-swiggy-orange mt-0.5">${o.gate}</div>
+            </div>
+          </div>
+
+          <div class="text-xs font-medium text-swiggy-charcoal">
+            <strong>Items:</strong> ${o.items.map((i) => `${i.name} × ${i.qty}`).join(', ')}
+            <div class="text-[11px] text-swiggy-slate mt-1">Slot: ${o.slot}</div>
+          </div>
+
+          <div class="pt-1">
+            ${o.status === 'ASSIGNED' ? `
+              <button onclick="updateOrderStatus(${o.id}, 'PICKED UP')" class="w-full bg-swiggy-orange hover:bg-swiggy-orangeLight text-white font-extrabold text-xs py-3 rounded-xl transition-colors">
+                Confirm Pickup from ${o.canteen} Canteen
+              </button>
+            ` : ''}
+            ${o.status === 'PICKED UP' ? `
+              <button onclick="updateOrderStatus(${o.id}, 'OUT FOR DELIVERY')" class="w-full bg-swiggy-ink hover:bg-swiggy-charcoal text-white font-extrabold text-xs py-3 rounded-xl transition-colors">
+                Start Delivery to ${o.gate}
+              </button>
+            ` : ''}
+            ${o.status === 'OUT FOR DELIVERY' ? `
+              <button onclick="completeRiderDelivery(${o.id})" class="w-full bg-swiggy-green hover:bg-[#159363] text-white font-extrabold text-xs py-3 rounded-xl transition-colors">
+                Mark Delivered at Hostel Gate ✓
+              </button>
+            ` : ''}
+            ${o.status === 'DELIVERED' ? `
+              <div class="text-center text-xs font-extrabold text-swiggy-green bg-emerald-50 py-2.5 rounded-xl">
+                Delivered Successfully • Rider Available
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function completeRiderDelivery(orderId) {
+      const order = state.orders.find((o) => o.id === orderId);
+      if (!order) return;
+      order.status = 'DELIVERED';
+
+      const rider = riders.find((r) => r.id === order.rider);
+      if (rider) {
+        rider.busy = false;
+        rider.activeOrderId = null;
+      }
+
+      updateNavbarBadges();
+      renderRiderDashboard();
+      renderAdminDashboard();
+      renderCanteenDashboard();
+      renderTrackerModal();
+      showToast(`Order #${orderId} delivered! ${order.rider} is now available.`, 'success');
+    }
+
+    /* -----------------------------------------------------------
+       12. HACKATHON PITCH MODAL
+    ------------------------------------------------------------ */
+    function openPitchModal() {
+      const modal = document.getElementById('pitchModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closePitchModal() {
+      const modal = document.getElementById('pitchModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    /* -----------------------------------------------------------
+       13. INITIALIZE APP ON LOAD
+    ------------------------------------------------------------ */
+    window.addEventListener('DOMContentLoaded', () => {
+      renderGateOptions();
+      switchRole('student');
+      updateNavbarBadges();
+    });
+  </script>
+</body>
+</html>
